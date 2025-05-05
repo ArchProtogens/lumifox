@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pub mod constants;
-pub mod errors;
-pub mod model;
-pub mod utils;
+pub mod board;
+pub mod game;
+pub mod pieces;
