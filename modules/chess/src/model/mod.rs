@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+pub mod bitboard;
 pub mod board;
 pub mod game;
 pub mod pieces;
