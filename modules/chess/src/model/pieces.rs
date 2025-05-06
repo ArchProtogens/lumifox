@@ -15,3 +15,149 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+// Internally the pieces will be represented by an 8 bit integer,
+// with the following bit layout:
+// bit  0–2  : piece type (0=empty, 1=pawn, …, 6=king)
+// bit  3    : color (0=white, 1=black)
+// bit  4    : has_moved (for castling rights)
+// bit  5    : is_promoted (for clarity, if you want)
+// bits 6–7  : reserved for future use
+
+use std::fmt;
+use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign};
+
+pub const EMPTY: u8 = 0; // Represents a completely empty square
+pub const WHITE: u8 = 0; // Bit 3 for color (0 for white)
+
+// Define flags based on the documented bit layout
+const PIECE_TYPE_MASK: u8 = 0b0000_0111; // Bits 0-2 for piece type
+pub const BLACK: u8 = 0b0000_1000; // Bit 3 for color (1 for black, 0 for white)
+pub const MOVED: u8 = 0b0001_0000; // Bit 4 for has_moved
+pub const PROMO: u8 = 0b0010_0000; // Bit 5 for is_promoted
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum PieceType {
+  Empty = 0, // Matches EMPTY if no other flags are set
+  Pawn = 1,
+  Knight = 2,
+  Bishop = 3,
+  Rook = 4,
+  Queen = 5,
+  King = 6,
+}
+
+pub struct Piece(pub u8);
+
+impl fmt::Debug for Piece {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    if self.is_empty_square() {
+      return write!(f, "Piece(Empty)");
+    }
+    let piece_type = self.piece_type();
+    let color = if self.is_black() { "Black" } else { "White" };
+    let mut flags = Vec::new();
+    if self.has_moved() {
+      flags.push("moved");
+    }
+    if self.is_promoted() {
+      flags.push("promoted");
+    }
+    write!(
+      f,
+      "Piece({} {:?}{})",
+      color,
+      piece_type,
+      if flags.is_empty() {
+        "".to_string()
+      } else {
+        format!(" ({})", flags.join(", "))
+      }
+    )
+  }
+}
+
+impl BitAnd for Piece {
+  type Output = Self;
+
+  fn bitand(self, rhs: Self) -> Self::Output {
+    Piece(self.0 & rhs.0)
+  }
+}
+
+impl BitAndAssign for Piece {
+  fn bitand_assign(&mut self, rhs: Self) {
+    self.0 &= rhs.0;
+  }
+}
+
+impl BitOr for Piece {
+  type Output = Self;
+
+  fn bitor(self, rhs: Self) -> Self::Output {
+    Piece(self.0 | rhs.0)
+  }
+}
+
+impl BitOrAssign for Piece {
+  fn bitor_assign(&mut self, rhs: Self) {
+    self.0 |= rhs.0;
+  }
+}
+
+impl Piece {
+  pub fn new(piece_type: PieceType, color_flag: u8) -> Self {
+    // color_flag should be Piece::BLACK or Piece::WHITE
+    Piece(piece_type as u8 | color_flag)
+  }
+
+  pub fn empty() -> Self {
+    Piece(EMPTY)
+  }
+
+  pub fn is_empty_square(&self) -> bool {
+    // Checks if the square is completely empty (no piece, no flags)
+    self.0 == EMPTY
+  }
+
+  pub fn piece_type(&self) -> PieceType {
+    let type_val = self.0 & PIECE_TYPE_MASK;
+    match type_val {
+      0 => PieceType::Empty,
+      1 => PieceType::Pawn,
+      2 => PieceType::Knight,
+      3 => PieceType::Bishop,
+      4 => PieceType::Rook,
+      5 => PieceType::Queen,
+      6 => PieceType::King,
+      _ => panic!("Invalid piece type value: {type_val}"), // Should not happen with valid pieces
+    }
+  }
+
+  pub fn is_black(&self) -> bool {
+    (self.0 & BLACK) != 0
+  }
+
+  pub fn has_moved(&self) -> bool {
+    (self.0 & MOVED) != 0
+  }
+
+  pub fn is_promoted(&self) -> bool {
+    (self.0 & PROMO) != 0
+  }
+
+  pub fn promote(&mut self, new_piece_type: PieceType) {
+    // Ensure the new type is not Empty or King for promotion
+    if new_piece_type == PieceType::Empty || new_piece_type == PieceType::King {
+      // Or handle error appropriately
+      panic!("Invalid promotion piece type");
+    }
+    // Clear current piece type bits and set new piece type and promotion flag
+    self.0 = (self.0 & !PIECE_TYPE_MASK) | (new_piece_type as u8) | PROMO;
+  }
+
+  pub fn set_moved(&mut self) {
+    self.0 |= MOVED;
+  }
+}
