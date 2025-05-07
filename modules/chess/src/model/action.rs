@@ -37,17 +37,14 @@
 
 use std::fmt::Debug;
 
+use crate::constants::{
+  CAPTURE_MASK, CASTLING_MASK, DEST_MASK, EN_PASSANT_MASK, FROM_MASK, PROMOTION_MASK,
+};
+
 use super::pieces::PieceType;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub struct Action(pub u16);
-
-pub const FROM_MASK: u16 = 0b0000_0000_0011_1111;
-pub const DEST_MASK: u16 = 0b0000_1111_1100_0000;
-pub const PROMOTION_MASK: u16 = 0b0001_0000_0000_0000;
-pub const CAPTURE_MASK: u16 = 0b0010_0000_0000_0000;
-pub const EN_PASSANT_MASK: u16 = 0b0100_0000_0000_0000;
-pub const CASTLING_MASK: u16 = 0b1000_0000_0000_0000;
 
 impl Debug for Action {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

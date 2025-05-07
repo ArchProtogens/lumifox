@@ -22,7 +22,7 @@ use super::{
   bitboard::BitBoard,
   pieces::{Piece, PieceType},
 };
-use crate::constants::BOARD_SIZE;
+use crate::constants::{BLACK, BOARD_SIZE, WHITE};
 
 pub struct Board {
   pub pieces: [Piece; BOARD_SIZE],
@@ -72,11 +72,7 @@ impl Board {
 
     for c in fen_pieces.chars() {
       let lc = c.to_ascii_lowercase();
-      let colour = if c.is_ascii_uppercase() {
-        super::pieces::WHITE
-      } else {
-        super::pieces::BLACK
-      };
+      let colour = if c.is_ascii_uppercase() { WHITE } else { BLACK };
       match lc {
         '1'..='8' => {
           index += c.to_digit(10).unwrap() as usize;
@@ -111,11 +107,11 @@ impl Board {
     }
 
     let active_colour = match fen_parts.next().unwrap_or("") {
-      "w" => super::pieces::WHITE,
-      "b" => super::pieces::BLACK,
+      "w" => WHITE,
+      "b" => BLACK,
       _ => panic!("Invalid active color in FEN string"),
     };
-    board.active_white = active_colour == super::pieces::WHITE;
+    board.active_white = active_colour == WHITE;
 
     let castling = fen_parts.next().unwrap_or("");
     // We now need to find the pieces that own the castling rights

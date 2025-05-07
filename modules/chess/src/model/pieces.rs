@@ -27,14 +27,10 @@
 use std::fmt;
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign};
 
-pub const EMPTY: u8 = 0; // Represents a completely empty square
-pub const WHITE: u8 = 0; // Bit 3 for color (0 for white)
+use crate::constants::{BLACK, EMPTY, MOVED, PROMO};
 
 // Define flags based on the documented bit layout
 const PIECE_TYPE_MASK: u8 = 0b0000_0111; // Bits 0-2 for piece type
-pub const BLACK: u8 = 0b0000_1000; // Bit 3 for color (1 for black, 0 for white)
-pub const MOVED: u8 = 0b0001_0000; // Bit 4 for has_moved
-pub const PROMO: u8 = 0b0010_0000; // Bit 5 for is_promoted
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -200,6 +196,8 @@ impl Piece {
 
 #[cfg(test)]
 mod tests {
+  use crate::constants::WHITE;
+
   use super::*;
 
   #[test]
