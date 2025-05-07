@@ -40,6 +40,7 @@ impl Default for Board {
 }
 
 impl Board {
+  #[must_use]
   pub fn new() -> Self {
     Self {
       pieces: [Piece(0); BOARD_SIZE],
@@ -51,15 +52,17 @@ impl Board {
     }
   }
 
-  pub fn reset(&mut self) {
+  pub fn reset(&mut self) -> &Self {
     self.pieces = [Piece(0); BOARD_SIZE];
     self.combined = BitBoard::new();
     self.active_white = true;
     self.castling = [None; 4];
     self.halfmoves = 0;
     self.fullmoves = 1;
+    self
   }
 
+  #[must_use]
   pub fn from_fen(fen: &str) -> Self {
     let mut board = Self::new();
     let mut index = 0;
@@ -183,6 +186,7 @@ impl Board {
     board
   }
 
+  #[must_use]
   pub fn to_fen(&self) -> String {
     let mut fen = String::new();
     let mut empty_count = 0;
@@ -247,12 +251,29 @@ impl Board {
   }
 
   #[cfg(feature = "fast_hash")]
+  #[inline]
+  #[must_use]
   pub fn get_hash(&self) -> u64 {
     use std::hash::Hasher;
 
-    let mut state = fxhash::FxHasher::default();
-    self.hash(&mut state);
-    state.finish()
+    // 64‐bit fxhash is a bit faster & avoids truncation on x86_64
+    let mut hasher = fxhash::FxHasher64::default();
+
+    // include the precomputed occupancy
+    self.combined.hash(&mut hasher);
+
+    // include castling rights
+    self.castling.hash(&mut hasher);
+
+    // include all pieces, active side, move counters
+    for p in &self.pieces {
+      p.hash(&mut hasher);
+    }
+    hasher.write_u8(self.active_white as u8);
+    hasher.write_usize(self.halfmoves);
+    hasher.write_usize(self.fullmoves);
+
+    hasher.finish()
   }
 }
 
