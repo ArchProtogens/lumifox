@@ -17,3 +17,4 @@
  */
 
 pub static NUMBER_OF_PIECES: usize = 6;
+pub static BOARD_SIZE: usize = 64;
