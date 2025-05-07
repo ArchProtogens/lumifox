@@ -17,7 +17,6 @@
  */
 
 use super::{
-  action::Action,
   bitboard::BitBoard,
   pieces::{Piece, PieceType},
 };
@@ -26,7 +25,6 @@ use crate::constants::BOARD_SIZE;
 pub struct Board {
   pub pieces: [Piece; BOARD_SIZE],
   pub combined: BitBoard,
-  pub actions: Vec<Action>,
   pub active_white: bool,
   pub castling: [Option<u8>; 4],
   pub halfmoves: usize,
@@ -44,7 +42,6 @@ impl Board {
     Self {
       pieces: [Piece(0); BOARD_SIZE],
       combined: BitBoard::new(),
-      actions: Vec::new(),
       active_white: true,
       castling: [None; 4],
       halfmoves: 0,
@@ -55,7 +52,6 @@ impl Board {
   pub fn reset(&mut self) {
     self.pieces = [Piece(0); BOARD_SIZE];
     self.combined = BitBoard::new();
-    self.actions.clear();
     self.active_white = true;
     self.castling = [None; 4];
     self.halfmoves = 0;
