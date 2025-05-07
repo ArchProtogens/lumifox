@@ -245,6 +245,15 @@ impl Board {
 
     fen
   }
+
+  #[cfg(feature = "fast_hash")]
+  pub fn get_hash(&self) -> u64 {
+    use std::hash::Hasher;
+
+    let mut state = fxhash::FxHasher::default();
+    self.hash(&mut state);
+    state.finish()
+  }
 }
 
 impl Hash for Board {
