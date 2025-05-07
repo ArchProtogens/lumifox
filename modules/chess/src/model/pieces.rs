@@ -36,7 +36,7 @@ pub const BLACK: u8 = 0b0000_1000; // Bit 3 for color (1 for black, 0 for white)
 pub const MOVED: u8 = 0b0001_0000; // Bit 4 for has_moved
 pub const PROMO: u8 = 0b0010_0000; // Bit 5 for is_promoted
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum PieceType {
   Empty = 0, // Matches EMPTY if no other flags are set
@@ -48,6 +48,22 @@ pub enum PieceType {
   King = 6,
 }
 
+impl fmt::Debug for PieceType {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let name = match self {
+      PieceType::Empty => "Empty",
+      PieceType::Pawn => "Pawn",
+      PieceType::Knight => "Knight",
+      PieceType::Bishop => "Bishop",
+      PieceType::Rook => "Rook",
+      PieceType::Queen => "Queen",
+      PieceType::King => "King",
+    };
+    write!(f, "PieceType({name})")
+  }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Piece(pub u8);
 
 impl fmt::Debug for Piece {
