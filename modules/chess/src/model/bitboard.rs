@@ -57,3 +57,41 @@ impl BitOrAssign for BitBoard {
     self.0 |= rhs.0;
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_bitboard_set() {
+    let mut board = BitBoard::new();
+    board.set(3);
+    assert_eq!(board.0, 1 << 3);
+  }
+
+  #[test]
+  fn test_bitboard_clear() {
+    let mut board = BitBoard::new();
+    board.set(3);
+    board.clear(3);
+    assert_eq!(board.0, 0);
+  }
+
+  #[test]
+  fn test_bitboard_toggle() {
+    let mut board = BitBoard::new();
+    board.set(3);
+    board.toggle(3);
+    assert_eq!(board.0, 0);
+    board.toggle(3);
+    assert_eq!(board.0, 1 << 3);
+  }
+
+  #[test]
+  fn test_bitboard_is_set() {
+    let mut board = BitBoard::new();
+    board.set(3);
+    assert!(board.is_set(3));
+    assert!(!board.is_set(4));
+  }
+}

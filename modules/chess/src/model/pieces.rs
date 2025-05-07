@@ -177,3 +177,76 @@ impl Piece {
     self.0 |= MOVED;
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_empty_piece() {
+    let p = Piece::empty();
+    assert!(p.is_empty_square());
+    assert_eq!(p.piece_type(), PieceType::Empty);
+    assert!(!p.is_black());
+    assert!(!p.has_moved());
+    assert!(!p.is_promoted());
+  }
+
+  #[test]
+  fn test_piece_new_and_properties() {
+    let white_pawn = Piece::new(PieceType::Pawn, WHITE);
+    assert!(!white_pawn.is_empty_square());
+    assert_eq!(white_pawn.piece_type(), PieceType::Pawn);
+    assert!(!white_pawn.is_black());
+
+    let black_knight = Piece::new(PieceType::Knight, BLACK);
+    assert_eq!(black_knight.piece_type(), PieceType::Knight);
+    assert!(black_knight.is_black());
+  }
+
+  #[test]
+  fn test_set_moved() {
+    let mut p = Piece::new(PieceType::Rook, WHITE);
+    assert!(!p.has_moved());
+    p.set_moved();
+    assert!(p.has_moved());
+  }
+
+  #[test]
+  fn test_promote() {
+    let mut p = Piece::new(PieceType::Pawn, WHITE);
+    p.promote(PieceType::Queen);
+    assert_eq!(p.piece_type(), PieceType::Queen);
+    assert!(p.is_promoted());
+  }
+
+  #[test]
+  #[should_panic]
+  fn test_invalid_promotion() {
+    let mut p = Piece::new(PieceType::Pawn, WHITE);
+    p.promote(PieceType::Empty);
+  }
+
+  #[test]
+  fn test_bit_ops() {
+    let p1 = Piece::new(PieceType::Bishop, BLACK);
+    let p2 = Piece(MOVED);
+    let combined = p1 | p2;
+    assert_eq!(combined.piece_type(), PieceType::Bishop);
+    assert!(combined.is_black());
+    assert!(combined.has_moved());
+
+    let masked = combined & Piece(!(MOVED));
+    assert!(!masked.has_moved());
+  }
+
+  #[test]
+  fn test_debug_format() {
+    let mut p = Piece::new(PieceType::Queen, BLACK);
+    p.set_moved();
+    let s = format!("{:?}", p);
+    assert!(s.contains("Black"));
+    assert!(s.contains("Queen"));
+    assert!(s.contains("moved"));
+  }
+}

@@ -81,8 +81,15 @@ impl Action {
   }
 
   pub fn set_promotion(&mut self, piece_type: PieceType) {
+    let piece_id = match piece_type {
+      PieceType::Knight => 0,
+      PieceType::Bishop => 1,
+      PieceType::Rook => 2,
+      PieceType::Queen => 3,
+      _ => panic!("Invalid piece type for promotion"),
+    };
     self.0 |= PROMOTION_MASK;
-    self.0 |= (piece_type as u16) << 14;
+    self.0 |= piece_id << 14;
   }
 
   pub fn set_capture(&mut self) {
@@ -136,5 +143,85 @@ impl Action {
 
   pub fn is_castling(&self) -> bool {
     (self.0 & CASTLING_MASK) != 0
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[cfg(test)]
+  mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_action_from_and_to() {
+      let action = Action::new(5, 10);
+      assert_eq!(action.from_square(), 5);
+      assert_eq!(action.to_square(), 10);
+      assert!(!action.is_capture());
+      assert!(!action.is_promotion());
+      assert!(!action.is_en_passant());
+      assert!(!action.is_castling());
+    }
+
+    #[test]
+    fn test_set_capture_flag() {
+      let mut action = Action::new(1, 2);
+      action.set_capture();
+      assert!(action.is_capture());
+      assert!(!action.is_promotion());
+      assert!(!action.is_en_passant());
+      assert!(!action.is_castling());
+    }
+
+    #[test]
+    fn test_set_en_passant_flag() {
+      let mut action = Action::new(2, 3);
+      action.set_en_passant();
+      assert!(action.is_en_passant());
+      assert!(!action.is_capture());
+      assert!(!action.is_promotion());
+      assert!(!action.is_castling());
+    }
+
+    #[test]
+    fn test_castling_flag() {
+      let mut action = Action::new(3, 4);
+      action.0 |= CASTLING_MASK;
+      assert!(action.is_castling());
+      assert!(!action.is_capture());
+      assert!(!action.is_promotion());
+      assert!(!action.is_en_passant());
+    }
+
+    #[test]
+    #[should_panic(expected = "Cannot set capture flag on a promotion action")]
+    fn test_capture_on_promotion_panics() {
+      let mut action = Action::new(0, 7);
+      action.set_promotion(PieceType::Queen);
+      action.set_capture();
+    }
+
+    #[test]
+    fn test_debug_non_promotion() {
+      let mut action = Action::new(4, 6);
+      action.set_capture();
+      action.0 |= EN_PASSANT_MASK;
+      action.0 |= CASTLING_MASK;
+      let s = format!("{:?}", action);
+      assert_eq!(
+        s,
+        "Action { from: 4, to: 6, capture: true, en_passant: true, castling: true }"
+      );
+    }
+
+    #[test]
+    fn test_debug_promotion() {
+      let mut action = Action::new(1, 8);
+      action.set_promotion(PieceType::Bishop);
+      let s = format!("{:?}", action);
+      assert_eq!(s, "Action { from: 1, to: 8, promotion: PieceType(Bishop) }");
+    }
   }
 }
