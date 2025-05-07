@@ -63,7 +63,7 @@ impl fmt::Debug for PieceType {
   }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Piece(pub u8);
 
 impl fmt::Debug for Piece {
@@ -175,6 +175,26 @@ impl Piece {
 
   pub fn set_moved(&mut self) {
     self.0 |= MOVED;
+  }
+
+  pub fn to_fen_char(&self) -> char {
+    if self.is_empty_square() {
+      return ' ';
+    }
+    let piece_char = match self.piece_type() {
+      PieceType::Pawn => 'P',
+      PieceType::Knight => 'N',
+      PieceType::Bishop => 'B',
+      PieceType::Rook => 'R',
+      PieceType::Queen => 'Q',
+      PieceType::King => 'K',
+      _ => unreachable!(),
+    };
+    if self.is_black() {
+      piece_char.to_ascii_lowercase()
+    } else {
+      piece_char
+    }
   }
 }
 

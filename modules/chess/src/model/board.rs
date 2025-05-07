@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use std::hash::Hash;
+
 use super::{
   bitboard::BitBoard,
   pieces::{Piece, PieceType},
@@ -180,6 +182,80 @@ impl Board {
 
     board
   }
+
+  pub fn to_fen(&self) -> String {
+    let mut fen = String::new();
+    let mut empty_count = 0;
+
+    for i in 0..64 {
+      if self.pieces[i].piece_type() == PieceType::Empty {
+        empty_count += 1;
+      } else {
+        if empty_count > 0 {
+          fen.push_str(&empty_count.to_string());
+          empty_count = 0;
+        }
+        fen.push(self.pieces[i].to_fen_char());
+      }
+      if (i + 1) % 8 == 0 && i != 63 {
+        if empty_count > 0 {
+          fen.push_str(&empty_count.to_string());
+          empty_count = 0;
+        }
+        fen.push('/');
+      }
+    }
+
+    if empty_count > 0 {
+      fen.push_str(&empty_count.to_string());
+    }
+
+    fen.push(' ');
+    fen.push(if self.active_white { 'w' } else { 'b' });
+    fen.push(' ');
+
+    for c in &self.castling {
+      match c {
+        Some(_) => {
+          // if the castle piece is left to the king, we add 'K' to the right we add 'Q'
+          let rook_index = c.unwrap();
+          let rook_x = (rook_index % 8) as usize;
+          let king_index = self
+            .pieces
+            .iter()
+            .position(|p| p.piece_type() == PieceType::King && p.is_black() == self.active_white)
+            .unwrap_or(0);
+          let king_x = king_index % 8;
+          if rook_x < king_x {
+            fen.push('K');
+          } else {
+            fen.push('Q');
+          }
+        }
+        None => fen.push('-'),
+      }
+    }
+
+    fen.push(' ');
+    fen.push('-');
+    fen.push(' ');
+    fen.push_str(&self.halfmoves.to_string());
+    fen.push(' ');
+    fen.push_str(&self.fullmoves.to_string());
+
+    fen
+  }
+}
+
+impl Hash for Board {
+  fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    for piece in &self.pieces {
+      piece.hash(state);
+    }
+    self.active_white.hash(state);
+    self.halfmoves.hash(state);
+    self.fullmoves.hash(state);
+  }
 }
 
 #[cfg(test)]
@@ -230,5 +306,15 @@ mod tests {
   #[should_panic(expected = "Invalid active color in FEN string")]
   fn test_invalid_active_color() {
     Board::from_fen("8/8/8/8/8/8/8/8 x - - 0 1");
+  }
+
+  #[test]
+  fn test_to_fen() {
+    let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1");
+    let fen = board.to_fen();
+    assert_eq!(
+      fen,
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ-- - 0 1"
+    );
   }
 }
