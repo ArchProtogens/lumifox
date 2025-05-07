@@ -335,7 +335,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "Invalid active color in FEN string")]
   fn test_invalid_active_color() {
-    Board::from_fen("8/8/8/8/8/8/8/8 x - - 0 1");
+    let _ = Board::from_fen("8/8/8/8/8/8/8/8 x - - 0 1");
   }
 
   #[test]
