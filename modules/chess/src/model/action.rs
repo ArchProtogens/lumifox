@@ -113,7 +113,7 @@ impl Action {
 
   pub fn get_promotion(&self) -> Option<PieceType> {
     if self.is_promotion() {
-      let promo_type = (self.0 >> 14) & 0b11;
+      let promo_type: u8 = ((self.0 >> 14) & 0b11) as u8;
       match promo_type {
         0 => Some(PieceType::Knight),
         1 => Some(PieceType::Bishop),
