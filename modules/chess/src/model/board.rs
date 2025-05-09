@@ -271,6 +271,19 @@ impl Board {
 
     hasher.finish()
   }
+
+  fn compute_combined(&mut self) {
+    self.combined = BitBoard::new();
+    for (index, piece) in self.pieces.iter().enumerate() {
+      if !piece.is_empty_square() {
+        self.combined.set(index as u64);
+      }
+    }
+  }
+
+  pub fn is_squared_occupied(&self, square: u8) -> bool {
+    self.combined.is_set(square as u64)
+  }
 }
 
 impl Hash for Board {
