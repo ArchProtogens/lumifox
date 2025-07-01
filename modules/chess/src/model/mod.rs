@@ -16,8 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pub mod action;
 pub mod bitboard;
-pub mod board;
-pub mod game;
-pub mod pieces;
+pub mod gameboard;
+pub mod piecemove;

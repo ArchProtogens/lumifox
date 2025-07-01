@@ -16,7 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#![no_std]
+extern crate alloc;
+
 pub mod constants;
 pub mod errors;
 pub mod model;
-pub mod utils;
+pub mod movegen;

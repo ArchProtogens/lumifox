@@ -14,84 +14,109 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-use std::ops::{BitOr, BitOrAssign};
+*/
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
-pub struct BitBoard(pub u64);
+use core::ops::{BitAnd, BitOr, BitXor};
+
+#[derive(Clone, Copy, Debug)]
+pub struct BitBoard {
+  data: u64,
+}
 
 impl BitBoard {
-  pub fn new() -> Self {
-    BitBoard(0)
+  /// Create a new bitboard
+  pub fn new(data: u64) -> Self {
+    Self { data }
   }
 
-  pub fn set(&mut self, square: u64) {
-    self.0 |= 1 << square;
+  /// Get the raw bits value
+  pub fn raw(&self) -> u64 {
+    self.data
   }
 
-  pub fn clear(&mut self, square: u64) {
-    self.0 &= !(1 << square);
+  pub fn set_bite(&mut self, index: u8) {
+    if index < 64 {
+      self.data |= 1 << index;
+    } else {
+      panic!("Index out of bounds: {}", index);
+    }
   }
 
-  pub fn toggle(&mut self, square: u64) {
-    self.0 ^= 1 << square;
+  pub fn get_bite(&self, index: u8) -> bool {
+    if index < 64 {
+      (self.data & (1 << index)) != 0
+    } else {
+      panic!("Index out of bounds: {}", index);
+    }
   }
 
-  pub fn is_set(&self, square: u64) -> bool {
-    (self.0 & (1 << square)) != 0
-  }
+  pub const EMPTY: Self = Self { data: 0 };
+  pub const ALL_SQUARES: Self = Self { data: u64::MAX };
 }
 
 impl BitOr for BitBoard {
   type Output = Self;
 
-  #[inline]
   fn bitor(self, rhs: Self) -> Self::Output {
-    BitBoard(self.0 | rhs.0)
+    Self::new(self.data | rhs.data)
   }
 }
 
-impl BitOrAssign for BitBoard {
-  #[inline]
-  fn bitor_assign(&mut self, rhs: Self) {
-    self.0 |= rhs.0;
+impl BitAnd for BitBoard {
+  type Output = Self;
+
+  fn bitand(self, rhs: Self) -> Self::Output {
+    Self::new(self.data & rhs.data)
   }
 }
 
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn test_bitboard_set() {
-    let mut board = BitBoard::new();
-    board.set(3);
-    assert_eq!(board.0, 1 << 3);
+impl BitXor<bool> for BitBoard {
+  type Output = Self;
+  fn bitxor(self, rhs: bool) -> Self::Output {
+    if rhs {
+      Self::new(self.data ^ u64::MAX)
+    } else {
+      self
+    }
   }
+}
 
-  #[test]
-  fn test_bitboard_clear() {
-    let mut board = BitBoard::new();
-    board.set(3);
-    board.clear(3);
-    assert_eq!(board.0, 0);
-  }
+pub struct BitBoardIter {
+  data: u64,
+}
 
-  #[test]
-  fn test_bitboard_toggle() {
-    let mut board = BitBoard::new();
-    board.set(3);
-    board.toggle(3);
-    assert_eq!(board.0, 0);
-    board.toggle(3);
-    assert_eq!(board.0, 1 << 3);
-  }
+impl Iterator for BitBoardIter {
+  type Item = u8; // Represents the square index (0-63)
 
-  #[test]
-  fn test_bitboard_is_set() {
-    let mut board = BitBoard::new();
-    board.set(3);
-    assert!(board.is_set(3));
-    assert!(!board.is_set(4));
+  fn next(&mut self) -> Option<Self::Item> {
+    if self.data == 0 {
+      None
+    } else {
+      let square = self.data.trailing_zeros() as u8;
+      self.data &= self.data - 1; // Clear the least significant bit
+      Some(square)
+    }
   }
+}
+
+impl IntoIterator for BitBoard {
+  type Item = u8;
+  type IntoIter = BitBoardIter;
+
+  fn into_iter(self) -> Self::IntoIter {
+    BitBoardIter { data: self.data }
+  }
+}
+
+/// Directions for shifting bitboards on the 8×8 board.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
+  Up = -8,
+  Down = 8,
+  Left = -1,
+  Right = 1,
+  UpLeft = -9,
+  UpRight = -7,
+  DownLeft = 7,
+  DownRight = 9,
 }

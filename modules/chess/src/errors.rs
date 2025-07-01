@@ -15,3 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+pub enum InvalidMove {
+  OutOfBounds,
+  InvalidPiece,
+  InvalidDestination,
+  InvalidAction,
+  InvalidPromotion,
+  InvalidEnPassant,
+  InvalidCastling,
+}
