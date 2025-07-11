@@ -118,9 +118,9 @@ impl Shr<u8> for BitBoard {
   }
 }
 
-impl Into<u64> for BitBoard {
-  fn into(self) -> u64 {
-    self.data
+impl From<BitBoard> for u64 {
+  fn from(val: BitBoard) -> Self {
+    val.data
   }
 }
 
@@ -164,9 +164,9 @@ pub enum Direction {
   DownRight = 9,
 }
 
-impl Into<i8> for Direction {
-  fn into(self) -> i8 {
-    match self {
+impl From<Direction> for i8 {
+  fn from(val: Direction) -> Self {
+    match val {
       Direction::Up => -8,
       Direction::Down => 8,
       Direction::Left => -1,

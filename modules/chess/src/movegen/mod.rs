@@ -16,4 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::model::{gameboard::GameBoard, piecemove::PieceMove};
 pub mod pawn;
+
+pub fn generate_moves(state: &GameBoard) -> ([PieceMove; pawn::MAX_PAWN_MOVES], usize) {
+  //
+  pawn::generate_pawn_moves(state)
+}
