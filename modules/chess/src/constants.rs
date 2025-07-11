@@ -25,6 +25,17 @@ pub const PROMO: u8 = 0b0010_0000; // Bit 5 for is_promoted
 pub const EMPTY: u8 = 0; // Represents a completely empty square
 pub const WHITE: u8 = 0; // Bit 3 for color (0 for white)
 
+pub const FILE_A: u64 = 0x0101_0101_0101_0101;
+pub const FILE_H: u64 = 0x8080_8080_8080_8080;
+pub const RANK_1: u64 = 0x0000_0000_0000_00FF;
+pub const RANK_2: u64 = 0x0000_0000_0000_FF00;
+pub const RANK_3: u64 = 0x0000_0000_00FF_0000;
+pub const RANK_4: u64 = 0x0000_0000_FF00_0000;
+pub const RANK_5: u64 = 0x0000_00FF_0000_0000;
+pub const RANK_6: u64 = 0x0000_FF00_0000_0000;
+pub const RANK_7: u64 = 0x00FF_0000_0000_0000;
+pub const RANK_8: u64 = 0xFF00_0000_0000_0000;
+
 pub const FROM_MASK: u16 = 0b0000_0000_0011_1111;
 pub const DEST_MASK: u16 = 0b0000_1111_1100_0000;
 pub const PROMOTION_MASK: u16 = 0b0001_0000_0000_0000;

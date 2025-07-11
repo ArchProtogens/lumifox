@@ -16,22 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-const MAX_PAWN_MOVES: usize = 16;
-const FILE_A: u64 = 0x0101_0101_0101_0101;
-const FILE_H: u64 = 0x8080_8080_8080_8080;
-const RANK_1: u64 = 0x0000_0000_00FF_00FF;
-const RANK_2: u64 = 0x0000_0000_0000_FF00;
-const RANK_3: u64 = 0x0000_0000_00FF_0000;
-const RANK_4: u64 = 0x0000_0000_FF00_0000;
-const RANK_5: u64 = 0x0000_00FF_0000_0000;
-const RANK_6: u64 = 0x0000_FF00_0000_0000;
-const RANK_7: u64 = 0x00FF_0000_0000_0000;
-const RANK_8: u64 = 0xFF00_0000_0000_0000;
-
+use crate::constants::*;
 use crate::model::{
   gameboard::GameBoard,
   piecemove::{PieceMove, PromotionType},
 };
+
+const MAX_PAWN_MOVES: usize = 16;
 
 /// Helper function to add a move
 #[inline]
@@ -232,60 +223,60 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
       );
     }
 
-    // 4. Left Captures
-    let mut tmp_left: u64 = left_captures.into();
-    while tmp_left != 0 {
-      let to_sq_idx = tmp_left.trailing_zeros() as u8;
-      let to_sq_bb = 1u64 << to_sq_idx;
+    // Clear the least significant bit
+    tmp_right &= tmp_right - 1;
+  }
 
-      // Determine the 'from' square based on the direction of the capture
-      let from_sq_idx = if state.playing {
-        to_sq_idx - 7
-      } else {
-        to_sq_idx + 9
-      };
+  // 4. Left Captures
+  let mut tmp_left: u64 = left_captures.into();
+  while tmp_left != 0 {
+    let to_sq_idx = tmp_left.trailing_zeros() as u8;
+    let to_sq_bb = 1u64 << to_sq_idx;
 
-      // Check for promotion (capturing promotion)
-      let is_promotion_rank =
-        (state.playing && (to_sq_bb & RANK_8) != 0) || (!state.playing && (to_sq_bb & RANK_1) != 0);
+    // Determine the 'from' square based on the direction of the capture
+    let from_sq_idx = if state.playing {
+      to_sq_idx - 7
+    } else {
+      to_sq_idx + 9
+    };
 
-      if is_promotion_rank {
-        // Generate 4 capturing promotion moves
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Queen)),
-        );
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Rook)),
-        );
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Bishop)),
-        );
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Knight)),
-        );
-      } else {
-        // Normal capture
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new(from_sq_idx, to_sq_idx, true, None),
-        );
-      }
+    // Check for promotion (capturing promotion)
+    let is_promotion_rank =
+      (state.playing && (to_sq_bb & RANK_8) != 0) || (!state.playing && (to_sq_bb & RANK_1) != 0);
 
-      // Clear the least significant bit
-      tmp_left &= tmp_left - 1;
+    if is_promotion_rank {
+      // Generate 4 capturing promotion moves
+      add_move_to_list(
+        &mut moves,
+        &mut count,
+        PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Queen)),
+      );
+      add_move_to_list(
+        &mut moves,
+        &mut count,
+        PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Rook)),
+      );
+      add_move_to_list(
+        &mut moves,
+        &mut count,
+        PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Bishop)),
+      );
+      add_move_to_list(
+        &mut moves,
+        &mut count,
+        PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Knight)),
+      );
+    } else {
+      // Normal capture
+      add_move_to_list(
+        &mut moves,
+        &mut count,
+        PieceMove::new(from_sq_idx, to_sq_idx, true, None),
+      );
     }
 
     // Clear the least significant bit
-    tmp_right &= tmp_right - 1;
+    tmp_left &= tmp_left - 1;
   }
 
   (moves, count)
