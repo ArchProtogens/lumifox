@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::model::piecemove::PieceMove;
+
 use super::bitboard::BitBoard;
 
 #[derive(Clone, Copy, Debug)]
@@ -29,14 +31,14 @@ pub struct GameBoard {
   pub kings: BitBoard,
 
   // Now for additional metadata
-  pub colour: BitBoard,
+  pub colour: BitBoard, // BitBoard indicating which pieces are white (1) or black (0)
   pub castling: u8,
-  pub en_passant: u16,
+  pub en_passant: PieceMove,
   pub playing: bool,
 }
 
-impl GameBoard {
-  pub fn new() -> Self {
+impl Default for GameBoard {
+  fn default() -> Self {
     GameBoard {
       pawns: BitBoard::EMPTY,
       knights: BitBoard::EMPTY,
@@ -46,9 +48,15 @@ impl GameBoard {
       kings: BitBoard::EMPTY,
       colour: BitBoard::EMPTY,
       castling: 0,
-      en_passant: 0,
-      playing: false,
+      en_passant: PieceMove::NULL,
+      playing: true,
     }
+  }
+}
+
+impl GameBoard {
+  pub fn new() -> Self {
+    GameBoard::default()
   }
 
   pub fn reset(&mut self) {

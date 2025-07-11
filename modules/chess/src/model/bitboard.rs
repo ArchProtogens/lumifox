@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use core::ops::{BitAnd, BitOr, BitXor};
+use core::ops::{BitAnd, BitOr, BitXor, Not, Shl, Shr};
 
 #[derive(Clone, Copy, Debug)]
 pub struct BitBoard {
@@ -70,6 +70,13 @@ impl BitAnd for BitBoard {
   }
 }
 
+impl BitAnd<u64> for BitBoard {
+  type Output = Self;
+  fn bitand(self, rhs: u64) -> Self::Output {
+    Self::new(self.data & rhs)
+  }
+}
+
 impl BitXor<bool> for BitBoard {
   type Output = Self;
   fn bitxor(self, rhs: bool) -> Self::Output {
@@ -78,6 +85,42 @@ impl BitXor<bool> for BitBoard {
     } else {
       self
     }
+  }
+}
+
+impl Not for BitBoard {
+  type Output = Self;
+
+  fn not(self) -> Self::Output {
+    let inverted = !self.data;
+    Self::new(inverted)
+  }
+}
+
+impl Shl<u8> for BitBoard {
+  type Output = Self;
+  fn shl(self, rhs: u8) -> Self::Output {
+    if rhs > 63 {
+      panic!("Shift amount out of bounds: {}", rhs);
+    }
+    Self::new(self.data << rhs)
+  }
+}
+
+impl Shr<u8> for BitBoard {
+  type Output = Self;
+
+  fn shr(self, rhs: u8) -> Self::Output {
+    if rhs > 63 {
+      panic!("Shift amount out of bounds: {}", rhs);
+    }
+    Self::new(self.data >> rhs)
+  }
+}
+
+impl Into<u64> for BitBoard {
+  fn into(self) -> u64 {
+    self.data
   }
 }
 
@@ -119,4 +162,19 @@ pub enum Direction {
   UpRight = -7,
   DownLeft = 7,
   DownRight = 9,
+}
+
+impl Into<i8> for Direction {
+  fn into(self) -> i8 {
+    match self {
+      Direction::Up => -8,
+      Direction::Down => 8,
+      Direction::Left => -1,
+      Direction::Right => 1,
+      Direction::UpLeft => -9,
+      Direction::UpRight => -7,
+      Direction::DownLeft => 7,
+      Direction::DownRight => 9,
+    }
+  }
 }
