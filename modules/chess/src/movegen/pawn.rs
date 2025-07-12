@@ -281,56 +281,32 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
 
   // 5. En Passant captures
   if state.en_passant != PieceMove::NULL {
-    let ep_to = state.en_passant.to_square();
-    let ep_bb = 1u64 << ep_to;
-    if state.playing {
-      // White to move, can capture a black pawn that just double-pushed
-      let ep_left = (ep_bb & !FILE_A) >> 1;
-      let ep_right = (ep_bb & !FILE_H) << 1;
-      let white_bb: u64 = (state.pawns & state.colour).into();
-      // capture from the left file
-      if (white_bb & ep_left) != 0 {
-        let from_sq = ep_left.trailing_zeros() as u8;
-        let to_sq = ep_to + 8;
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new_en_passant(from_sq, to_sq),
-        );
-      }
-      // capture from the right file
-      if (white_bb & ep_right) != 0 {
-        let from_sq = ep_right.trailing_zeros() as u8;
-        let to_sq = ep_to + 8;
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new_en_passant(from_sq, to_sq),
-        );
-      }
+    let ep_target_sq = state.en_passant.to_square();
+    let ep_target_bb = 1u64 << ep_target_sq;
+
+    let pawn_attacks = if state.playing {
+      // White attacks black pawns
+      ((ep_target_bb >> 7) & !FILE_A) | ((ep_target_bb >> 9) & !FILE_H)
     } else {
-      // Black to move, can capture a white pawn that just double-pushed
-      let ep_left = (ep_bb & !FILE_A) >> 1;
-      let ep_right = (ep_bb & !FILE_H) << 1;
-      let black_bb: u64 = (state.pawns & !state.colour).into();
-      if (black_bb & ep_left) != 0 {
-        let from_sq = ep_left.trailing_zeros() as u8;
-        let to_sq = ep_to.wrapping_sub(8);
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new_en_passant(from_sq, to_sq),
-        );
-      }
-      if (black_bb & ep_right) != 0 {
-        let from_sq = ep_right.trailing_zeros() as u8;
-        let to_sq = ep_to.wrapping_sub(8);
-        add_move_to_list(
-          &mut moves,
-          &mut count,
-          PieceMove::new_en_passant(from_sq, to_sq),
-        );
-      }
+      // Black attacks white pawns
+      ((ep_target_bb << 7) & !FILE_H) | ((ep_target_bb << 9) & !FILE_A)
+    };
+
+    let friendly_pawns: u64 = if state.playing {
+      (state.pawns & state.colour).into()
+    } else {
+      (state.pawns & !state.colour).into()
+    };
+
+    let mut attackers = pawn_attacks & friendly_pawns;
+    while attackers != 0 {
+      let from_sq = attackers.trailing_zeros() as u8;
+      add_move_to_list(
+        &mut moves,
+        &mut count,
+        PieceMove::new_en_passant(from_sq, ep_target_sq),
+      );
+      attackers &= attackers - 1;
     }
   }
 

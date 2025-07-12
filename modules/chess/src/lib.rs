@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#![no_std]
+#![cfg_attr(not(any(test, feature = "std")), no_std)]
 
 pub mod constants;
 pub mod errors;

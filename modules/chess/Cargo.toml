@@ -6,3 +6,7 @@ edition = "2024"
 [dependencies]
 
 [features]
+std = []
+
+# Enable std for tests
+[dev-dependencies]
