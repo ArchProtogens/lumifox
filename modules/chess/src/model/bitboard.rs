@@ -34,7 +34,7 @@ impl BitBoard {
     self.data
   }
 
-  pub fn set_bite(&mut self, index: u8) {
+  pub fn set_bit(&mut self, index: u8) {
     if index < 64 {
       self.data |= 1 << index;
     } else {
@@ -42,7 +42,15 @@ impl BitBoard {
     }
   }
 
-  pub fn get_bite(&self, index: u8) -> bool {
+  pub fn unset_bit(&mut self, index: u8) {
+    if index < 64 {
+      self.data &= !(1 << index);
+    } else {
+      panic!("Index out of bounds: {}", index);
+    }
+  }
+
+  pub fn get_bit(&self, index: u8) -> bool {
     if index < 64 {
       (self.data & (1 << index)) != 0
     } else {

@@ -22,7 +22,7 @@ use crate::model::{
   piecemove::{PieceMove, PromotionType},
 };
 
-pub const MAX_PAWN_MOVES: usize = 16;
+pub const MAX_PAWN_MOVES: usize = 56;
 
 /// Helper function to add a move
 #[inline]
@@ -44,7 +44,7 @@ fn add_move_to_list(
 }
 
 pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MOVES], usize) {
-  let mut moves: [PieceMove; MAX_PAWN_MOVES] = Default::default();
+  let mut moves = [PieceMove::NULL; MAX_PAWN_MOVES];
   let mut count = 0;
 
   let all_occupied =
@@ -96,10 +96,6 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
     right_captures = (black_pawns >> 7) & opponent_pieces & !FILE_A; // Capture right
     left_captures = (black_pawns >> 9) & opponent_pieces & !FILE_H; // Capture left
   }
-
-  // TODO: Convert bitboards (single_pushes, double_pushes, etc.) to PieceMove objects.
-  // TODO: Handle promotions (any move landing on RANK_8).
-  // TODO: Handle en passant captures.
 
   // 1. Single Pushes
   let mut tmp_single: u64 = single_pushes.into();

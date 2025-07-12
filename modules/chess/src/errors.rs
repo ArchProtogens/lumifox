@@ -9,11 +9,11 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 pub enum InvalidMove {
@@ -24,4 +24,36 @@ pub enum InvalidMove {
   InvalidPromotion,
   InvalidEnPassant,
   InvalidCastling,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum FenParseError {
+  /// The FEN string has an incorrect number of fields (expected 6).
+  MalformedFen,
+  /// Error parsing the piece placement section.
+  InvalidPiecePlacement,
+  /// An invalid character was found in the piece placement section.
+  InvalidPieceChar,
+  /// A rank in the piece placement section has an incorrect number of squares.
+  InvalidRankLength,
+  /// The piece placement section has an incorrect number of ranks.
+  InvalidRankCount,
+  /// Error parsing the active color field (not 'w' or 'b').
+  InvalidActiveColor,
+  /// Error parsing the castling availability field.
+  InvalidCastling,
+  /// An invalid character was found in the castling availability field.
+  InvalidCastlingChar,
+  /// Error parsing the en passant target square field.
+  InvalidEnPassant,
+  /// The en passant square is not a valid algebraic notation.
+  InvalidEnPassantSquare,
+  /// Error parsing the half-move clock (not a valid number).
+  InvalidHalfmoveClock,
+  /// Error parsing the full-move number (not a valid number).
+  InvalidFullmoveNumber,
+  /// A numeric value was expected but not found or was unparseable.
+  ExpectedNumber,
+  /// An unexpected character was encountered during parsing.
+  UnexpectedCharacter,
 }

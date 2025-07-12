@@ -34,7 +34,7 @@ pub struct GameBoard {
   pub colour: BitBoard, // BitBoard indicating which pieces are white (1) or black (0)
   pub castling: u8,
   pub en_passant: PieceMove,
-  pub playing: bool,
+  pub playing: bool, // true if it's white's turn to play
 }
 
 impl Default for GameBoard {
@@ -69,5 +69,19 @@ impl GameBoard {
 
   pub fn combined_coloured(&self, desired: bool) -> BitBoard {
     self.combined() & (self.colour ^ desired)
+  }
+
+  pub fn casling_right_white(&self) -> (bool, bool) {
+    (
+      (self.castling & 0b0001) != 0, // White kingside
+      (self.castling & 0b0010) != 0, // White queenside)
+    )
+  }
+
+  pub fn casling_right_black(&self) -> (bool, bool) {
+    (
+      (self.castling & 0b0100) != 0, // Black kingside
+      (self.castling & 0b1000) != 0, // Black queenside
+    )
   }
 }
