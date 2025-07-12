@@ -9,11 +9,11 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 use crate::model::piecemove::PieceMove;
@@ -74,7 +74,7 @@ impl GameBoard {
   pub fn casling_right_white(&self) -> (bool, bool) {
     (
       (self.castling & 0b0001) != 0, // White kingside
-      (self.castling & 0b0010) != 0, // White queenside)
+      (self.castling & 0b0010) != 0, // White queenside
     )
   }
 
