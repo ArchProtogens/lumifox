@@ -173,7 +173,7 @@ impl GameData {
       let row = chars.next().ok_or(FenParseError::InvalidEnPassantSquare)?;
 
       let col_nbr = match col {
-        'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' => col as u8 - b'a' - 1,
+        'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' => col as u8 - b'a',
         _ => return Err(FenParseError::InvalidEnPassantSquare),
       };
       let row_nbr = match row {
@@ -229,7 +229,8 @@ impl GameData {
     let mut fen = String::new();
 
     // 1. Piece placement
-    for rank in 0..8 {
+    // FEN notation starts from rank 8 (index 7) and goes down to rank 1 (index 0)
+    for rank in (0..8).rev() {
       let mut empty_count = 0;
       for file in 0..8 {
         let square = rank * 8 + file;
@@ -252,7 +253,7 @@ impl GameData {
       }
 
       // Add rank separator (unless last rank)
-      if rank < 7 {
+      if rank > 0 {
         fen.push('/');
       }
     }
@@ -290,7 +291,7 @@ impl GameData {
       fen.push('-');
     } else {
       let sq = self.board.en_passant.to_square();
-      let file = (sq % 8) as u8 + 1;
+      let file = (sq % 8) as u8;
       let rank = 8 - (sq / 8);
       fen.push((b'a' + file) as char);
       fen.push((b'0' + rank as u8) as char);
@@ -309,6 +310,7 @@ impl GameData {
   }
 
   // Helper function to get piece character at a square
+  #[cfg(feature = "std")]
   fn get_piece_char(&self, square: u8) -> Option<char> {
     if self.board.pawns.get_bit(square) {
       Some(if self.board.colour.get_bit(square) {
