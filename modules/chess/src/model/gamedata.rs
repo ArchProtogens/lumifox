@@ -355,6 +355,7 @@ impl GameData {
   pub fn print_board(&self) {
     // Print ranks 8 down to 1
     for rank in (0..8).rev() {
+      print!("\x1b[37m{}\x1b[0m   ", rank + 1);
       for file in 0..8 {
         let sq = (rank * 8 + file) as u8;
         if let Some(c) = self.get_piece_char(sq) {
@@ -371,6 +372,7 @@ impl GameData {
       }
       println!();
     }
+    println!("\n\x1b[37m    a b c d e f g h\x1b[0m"); // Print file labels
   }
 }
 

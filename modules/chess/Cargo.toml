@@ -10,3 +10,4 @@ std = []
 
 # Enable std for tests
 [dev-dependencies]
+rand = "0.9"
