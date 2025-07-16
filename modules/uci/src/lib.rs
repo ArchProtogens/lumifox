@@ -1,17 +1,14 @@
 /*
- * A library to interact with the Universal Chess Interface (UCI) protocol.
- * Copyright (C) 2025  Clifton Toaster Reid
+ * This file is dual-licensed under the terms of the GNU Lesser General Public License,
+ * Version 3 or later, and the BSD 3-Clause License.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * You are free to use this software under the terms of either licence.
+ * See the `LICENCE-LGPL-3.0-or-later.md` and `LICENCE-BSD-3-Clause.md`
+ * files in this repository for the full text of each licence.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * If the files have not been provided, you can find the full text of the licences at:
+ * LGPL-3.0-or-later: https://opensource.org/license/lgpl-3-0
+ * BSD-3-Clause: https://opensource.org/license/bsd-3-clause
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * Copyright (C) 2025 Clifton Toaster Reid
  */

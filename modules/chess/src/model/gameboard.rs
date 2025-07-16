@@ -1,20 +1,20 @@
 /*
- * A simple and growing chess library in Rust.
- * Copyright (C) 2025  Clifton Toaster Reid
+ * A high-performance chess library licensed under the LGPLv3.
+ * Copyright (C) 2025 Clifton Toaster Reid
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * This library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
-*/
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
+ */
 
 use crate::model::piecemove::{PieceMove, PromotionType};
 
@@ -95,9 +95,28 @@ impl GameBoard {
     )
   }
 
-  pub fn is_move_legal(&self, piece_move: &PieceMove) -> bool {
+  pub fn is_move_legal(&self, _piece_move: &PieceMove) -> bool {
     // TODO: Implement move legality check
     true
+  }
+
+  pub fn get_piece(&self, square: u8) -> Option<PieceType> {
+    // Check each piece type in order and return the first one found
+    if self.pawns.get_bit(square) {
+      Some(PieceType::Pawn)
+    } else if self.knights.get_bit(square) {
+      Some(PieceType::Knight)
+    } else if self.bishops.get_bit(square) {
+      Some(PieceType::Bishop)
+    } else if self.rooks.get_bit(square) {
+      Some(PieceType::Rook)
+    } else if self.queens.get_bit(square) {
+      Some(PieceType::Queen)
+    } else if self.kings.get_bit(square) {
+      Some(PieceType::King)
+    } else {
+      None
+    }
   }
 
   pub fn clear_square(&mut self, square: u8) -> Option<PieceType> {
