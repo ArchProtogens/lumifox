@@ -48,6 +48,8 @@ pub enum FenParseError {
   InvalidEnPassant,
   /// The en passant square is not a valid algebraic notation.
   InvalidEnPassantSquare,
+  /// The en passant square doesn't match the board context (no pawn to capture, wrong side to move, etc.).
+  InvalidEnPassantContext,
   /// Error parsing the half-move clock (not a valid number).
   InvalidHalfmoveClock,
   /// Error parsing the full-move number (not a valid number).

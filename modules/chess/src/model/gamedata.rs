@@ -177,7 +177,7 @@ impl GameData {
         _ => return Err(FenParseError::InvalidEnPassantSquare),
       };
       let row_nbr = match row {
-        '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' => 7 - (row as u8 - b'1'),
+        '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' => row as u8 - b'1',
         _ => return Err(FenParseError::InvalidEnPassantSquare),
       };
 
@@ -188,12 +188,80 @@ impl GameData {
       if row_nbr != 2 && row_nbr != 5 {
         return Err(FenParseError::InvalidEnPassantSquare);
       }
+
+      // Validate en passant context based on active color
+      if board.playing {
+        // White to move: en passant target must be on rank 6 (row_nbr == 5)
+        // This means black just moved a pawn from rank 7 to rank 5
+        if row_nbr != 5 {
+          return Err(FenParseError::InvalidEnPassantContext);
+        }
+        // Check that there's a black pawn on rank 5 (the pawn that just moved)
+        let captured_pawn_square = (row_nbr - 1) * 8 + col_nbr; // rank 5
+        if !board.pawns.get_bit(captured_pawn_square) || board.colour.get_bit(captured_pawn_square)
+        {
+          return Err(FenParseError::InvalidEnPassantContext);
+        }
+        // Check that there's at least one white pawn that can capture
+        let left_attacker = if col_nbr > 0 {
+          Some((row_nbr - 1) * 8 + col_nbr - 1)
+        } else {
+          None
+        };
+        let right_attacker = if col_nbr < 7 {
+          Some((row_nbr - 1) * 8 + col_nbr + 1)
+        } else {
+          None
+        };
+        let has_attacker = [left_attacker, right_attacker]
+          .iter()
+          .filter_map(|&sq| sq)
+          .any(|sq| board.pawns.get_bit(sq) && board.colour.get_bit(sq));
+        if !has_attacker {
+          return Err(FenParseError::InvalidEnPassantContext);
+        }
+      } else {
+        // Black to move: en passant target must be on rank 3 (row_nbr == 2)
+        // This means white just moved a pawn from rank 2 to rank 4
+        if row_nbr != 2 {
+          return Err(FenParseError::InvalidEnPassantContext);
+        }
+        // Check that there's a white pawn on rank 4 (the pawn that just moved)
+        let captured_pawn_square = (row_nbr + 1) * 8 + col_nbr; // rank 4
+        if !board.pawns.get_bit(captured_pawn_square) || !board.colour.get_bit(captured_pawn_square)
+        {
+          return Err(FenParseError::InvalidEnPassantContext);
+        }
+        // Check that there's at least one black pawn that can capture
+        let left_attacker = if col_nbr > 0 {
+          Some((row_nbr + 1) * 8 + col_nbr - 1)
+        } else {
+          None
+        };
+        let right_attacker = if col_nbr < 7 {
+          Some((row_nbr + 1) * 8 + col_nbr + 1)
+        } else {
+          None
+        };
+        let has_attacker = [left_attacker, right_attacker]
+          .iter()
+          .filter_map(|&sq| sq)
+          .any(|sq| board.pawns.get_bit(sq) && !board.colour.get_bit(sq));
+        if !has_attacker {
+          return Err(FenParseError::InvalidEnPassantContext);
+        }
+      }
+
+      // Check that the en passant target square itself is empty
       let square_index = row_nbr * 8 + col_nbr;
+      if board.combined().get_bit(square_index) {
+        return Err(FenParseError::InvalidEnPassantContext);
+      }
 
       if board.en_passant != PieceMove::NULL {
         return Err(FenParseError::InvalidEnPassant);
       }
-      board.en_passant = PieceMove::new(0, square_index, false, None);
+      board.en_passant = PieceMove::new(0, square_index, true, None);
     }
 
     // 5. Halfmove clock
@@ -292,7 +360,7 @@ impl GameData {
     } else {
       let sq = self.board.en_passant.to_square();
       let file = sq % 8;
-      let rank = 8 - (sq / 8);
+      let rank = 1 + (sq / 8);
       fen.push((b'a' + file) as char);
       fen.push((b'0' + rank) as char);
     }
@@ -408,13 +476,13 @@ mod tests {
   #[test]
   fn test_fen_roundtrip_en_passant_white() {
     // Position with en passant square e3 available to black
-    fen_roundtrip_test("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e3 0 2");
+    fen_roundtrip_test("rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2");
   }
 
   #[test]
   fn test_fen_roundtrip_en_passant_black() {
     // Position with en passant square f6 available to white
-    fen_roundtrip_test("rnbqkbnr/pppp2pp/8/4pp2/4P3/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3");
+    fen_roundtrip_test("rnbqkbnr/ppppp1pp/8/8/4Pp2/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 3");
   }
 
   #[test]
@@ -530,6 +598,62 @@ mod tests {
     assert_eq!(
       GameData::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0").unwrap_err(),
       FenParseError::InvalidFullmoveNumber
+    );
+  }
+
+  #[test]
+  fn test_from_fen_invalid_en_passant_context_no_pawn() {
+    // En passant square e6 but no black pawn on e5
+    assert_eq!(
+      GameData::from_fen("rnbqkbnr/pppp1ppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2")
+        .unwrap_err(),
+      FenParseError::InvalidEnPassantContext
+    );
+  }
+
+  #[test]
+  fn test_from_fen_invalid_en_passant_context_no_attacker() {
+    // En passant square e6 with black pawn on e5 but no white pawn to capture
+    assert_eq!(
+      GameData::from_fen("rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2")
+        .unwrap_err(),
+      FenParseError::InvalidEnPassantContext
+    );
+  }
+
+  #[test]
+  fn test_from_fen_invalid_en_passant_context_wrong_side() {
+    // Black to move but en passant on rank 6 (should be rank 3)
+    assert_eq!(
+      GameData::from_fen("rnbqkbnr/pppp1ppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR b KQkq e6 0 2")
+        .unwrap_err(),
+      FenParseError::InvalidEnPassantContext
+    );
+  }
+
+  #[test]
+  fn test_from_fen_invalid_en_passant_target_occupied() {
+    // En passant target square occupied by a piece
+    assert_eq!(
+      GameData::from_fen("rnbqkbnr/pppp1ppp/4P3/3p4/8/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2")
+        .unwrap_err(),
+      FenParseError::InvalidEnPassantContext
+    );
+  }
+
+  #[test]
+  fn test_from_fen_valid_en_passant_white() {
+    // Valid en passant: white to move, black pawn on d5, white pawn on e5
+    assert!(
+      GameData::from_fen("rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2").is_ok()
+    );
+  }
+
+  #[test]
+  fn test_from_fen_valid_en_passant_black() {
+    // Valid en passant: black to move, white pawn on e4, black pawn on d4
+    assert!(
+      GameData::from_fen("rnbqkbnr/ppppp1pp/8/8/3pP3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 2").is_ok()
     );
   }
 }

@@ -22,8 +22,33 @@
 // Bit 14:    IsPromotion (1 bit)
 // Bit 15:    IsCapture (1 bit)
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)] // Added traits for easier use with arrays/debugging
+use core::fmt::Debug;
+
+#[derive(Clone, Copy, PartialEq, Eq)] // Added traits for easier use with arrays/debugging
 pub struct PieceMove(u16);
+
+impl Debug for PieceMove {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    if *self == PieceMove::NULL {
+      write!(f, "NULL")
+    } else {
+      let to_file = (self.to_square() % 8 + b'a') as char; // Get the file (0-7)
+      let to_rank = (self.to_square() / 8 + b'1') as char; // Get the rank (0-7)
+      let from_file = (self.from_square() % 8 + b'a') as char; // Get the file (0-7)
+      let from_rank = (self.from_square() / 8 + b'1') as char; // Get the rank (0-7)
+      write!(
+        f,
+        "PieceMove({}{} -> {}{}{} - {:?})",
+        from_file,
+        from_rank,
+        to_file,
+        to_rank,
+        if self.is_capture() { " (Capture)" } else { "" },
+        self.promotion_type()
+      )
+    }
+  }
+}
 
 // Constants for bit masks and shifts
 const FROM_SQUARE_MASK: u16 = 0x3F; // 0b0000_0000_0011_1111
@@ -196,6 +221,19 @@ impl PieceMove {
     } else {
       from == 60 && to == 58 // e8 to c8
     }
+  }
+
+  /// Checks if the move is an en passant capture, determined by a capture flag
+  /// and a one-square diagonal move (difference of 7 or 9 in the packed squares).
+  #[inline]
+  pub fn is_en_passant(&self) -> bool {
+    if !self.is_capture() {
+      return false;
+    }
+    let from = self.from_square() as i8;
+    let to = self.to_square() as i8;
+    let diff = (from - to).abs();
+    diff == 7 || diff == 9
   }
 }
 

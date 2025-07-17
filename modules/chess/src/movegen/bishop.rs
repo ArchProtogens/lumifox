@@ -183,3 +183,369 @@ pub(crate) fn generate_bishop_moves(state: &GameBoard) -> ([PieceMove; MAX_BISHO
 
   (moves, count)
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::constants::*;
+  use crate::model::gamedata::GameData;
+  use crate::model::piecemove::PieceMove;
+
+  // Helper function to sort and compare PieceMove arrays
+  fn sort_and_compare_moves(mut moves: Vec<PieceMove>) -> Vec<PieceMove> {
+    moves.sort_by_key(|m| {
+      (
+        m.from_square(),
+        m.to_square(),
+        m.is_capture(),
+        m.promotion_type().map(|p| p as u8).unwrap_or(0),
+      )
+    });
+    moves
+  }
+
+  #[test]
+  fn test_single_white_bishop_center() {
+    // White bishop on D4 with clear diagonals
+    let board = GameData::from_fen("8/8/8/8/3B4/8/8/8 w - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // Top-left diagonal
+      PieceMove::new(D4, C5, false, None),
+      PieceMove::new(D4, B6, false, None),
+      PieceMove::new(D4, A7, false, None),
+      // Top-right diagonal
+      PieceMove::new(D4, E5, false, None),
+      PieceMove::new(D4, F6, false, None),
+      PieceMove::new(D4, G7, false, None),
+      PieceMove::new(D4, H8, false, None),
+      // Bottom-left diagonal
+      PieceMove::new(D4, C3, false, None),
+      PieceMove::new(D4, B2, false, None),
+      PieceMove::new(D4, A1, false, None),
+      // Bottom-right diagonal
+      PieceMove::new(D4, E3, false, None),
+      PieceMove::new(D4, F2, false, None),
+      PieceMove::new(D4, G1, false, None),
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_single_black_bishop_center() {
+    // Black bishop on D4 with clear diagonals
+    let board = GameData::from_fen("8/8/8/8/3b4/8/8/8 b - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // Top-left diagonal
+      PieceMove::new(D4, C5, false, None),
+      PieceMove::new(D4, B6, false, None),
+      PieceMove::new(D4, A7, false, None),
+      // Top-right diagonal
+      PieceMove::new(D4, E5, false, None),
+      PieceMove::new(D4, F6, false, None),
+      PieceMove::new(D4, G7, false, None),
+      PieceMove::new(D4, H8, false, None),
+      // Bottom-left diagonal
+      PieceMove::new(D4, C3, false, None),
+      PieceMove::new(D4, B2, false, None),
+      PieceMove::new(D4, A1, false, None),
+      // Bottom-right diagonal
+      PieceMove::new(D4, E3, false, None),
+      PieceMove::new(D4, F2, false, None),
+      PieceMove::new(D4, G1, false, None),
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_white_bishop_corner() {
+    // White bishop on A1 corner
+    let board = GameData::from_fen("8/8/8/8/8/8/8/B7 w - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // Only top-right diagonal available from A1
+      PieceMove::new(A1, B2, false, None),
+      PieceMove::new(A1, C3, false, None),
+      PieceMove::new(A1, D4, false, None),
+      PieceMove::new(A1, E5, false, None),
+      PieceMove::new(A1, F6, false, None),
+      PieceMove::new(A1, G7, false, None),
+      PieceMove::new(A1, H8, false, None),
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_white_bishop_h8_corner() {
+    // White bishop on H8 corner
+    let board = GameData::from_fen("7B/8/8/8/8/8/8/8 w - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // Only bottom-left diagonal available from H8
+      PieceMove::new(H8, G7, false, None),
+      PieceMove::new(H8, F6, false, None),
+      PieceMove::new(H8, E5, false, None),
+      PieceMove::new(H8, D4, false, None),
+      PieceMove::new(H8, C3, false, None),
+      PieceMove::new(H8, B2, false, None),
+      PieceMove::new(H8, A1, false, None),
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_white_bishop_captures() {
+    // White bishop on D4 with black pieces to capture
+    let board = GameData::from_fen("8/3p3p/8/8/3B4/8/1p3p2/8 w - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // Top-left diagonal - capture on D7
+      PieceMove::new(D4, C5, false, None),
+      PieceMove::new(D4, B6, false, None),
+      PieceMove::new(D4, A7, false, None),
+      // Top-right diagonal
+      PieceMove::new(D4, E5, false, None),
+      PieceMove::new(D4, F6, false, None),
+      PieceMove::new(D4, G7, false, None),
+      PieceMove::new(D4, H8, false, None), // Capture
+      // Bottom-left diagonal - capture on B2
+      PieceMove::new(D4, C3, false, None),
+      PieceMove::new(D4, B2, true, None), // Capture
+      // Bottom-right diagonal - capture on F2
+      PieceMove::new(D4, E3, false, None),
+      PieceMove::new(D4, F2, true, None), // Capture
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_black_bishop_captures() {
+    // Black bishop on D4 with white pieces to capture
+    let board = GameData::from_fen("8/3P3P/8/8/3b4/8/1P3P2/8 b - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // Top-left diagonal - capture on D7
+      PieceMove::new(D4, C5, false, None),
+      PieceMove::new(D4, B6, false, None),
+      PieceMove::new(D4, A7, false, None),
+      // Top-right diagonal
+      PieceMove::new(D4, E5, false, None),
+      PieceMove::new(D4, F6, false, None),
+      PieceMove::new(D4, G7, false, None),
+      PieceMove::new(D4, H8, false, None), // Capture
+      // Bottom-left diagonal - capture on B2
+      PieceMove::new(D4, C3, false, None),
+      PieceMove::new(D4, B2, true, None), // Capture
+      // Bottom-right diagonal - capture on F2
+      PieceMove::new(D4, E3, false, None),
+      PieceMove::new(D4, F2, true, None), // Capture
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_bishop_blocked_by_own_pieces() {
+    // White bishop on D4 blocked by own pawns
+    let board = GameData::from_fen("8/8/8/2P1P3/3B4/2P1P3/8/8 w - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    // Bishop should have no moves as all diagonals are blocked by own pieces
+    let expected_moves = vec![];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_bishop_partially_blocked() {
+    // White bishop on D4 with some diagonals blocked
+    let board = GameData::from_fen("8/8/8/8/3B4/8/1P6/8 w - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // Top-left diagonal - clear
+      PieceMove::new(D4, C5, false, None),
+      PieceMove::new(D4, B6, false, None),
+      PieceMove::new(D4, A7, false, None),
+      // Top-right diagonal - clear
+      PieceMove::new(D4, E5, false, None),
+      PieceMove::new(D4, F6, false, None),
+      PieceMove::new(D4, G7, false, None),
+      PieceMove::new(D4, H8, false, None),
+      // Bottom-left diagonal - blocked at B2
+      PieceMove::new(D4, C3, false, None),
+      // Bottom-right diagonal - clear
+      PieceMove::new(D4, E3, false, None),
+      PieceMove::new(D4, F2, false, None),
+      PieceMove::new(D4, G1, false, None),
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_multiple_bishops() {
+    // Two white bishops on the board
+    let board = GameData::from_fen("8/8/8/8/3B4/8/8/B7 w - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // Bishop on D4 moves
+      PieceMove::new(D4, C5, false, None),
+      PieceMove::new(D4, B6, false, None),
+      PieceMove::new(D4, A7, false, None),
+      PieceMove::new(D4, E5, false, None),
+      PieceMove::new(D4, F6, false, None),
+      PieceMove::new(D4, G7, false, None),
+      PieceMove::new(D4, H8, false, None),
+      PieceMove::new(D4, C3, false, None),
+      PieceMove::new(D4, B2, false, None),
+      PieceMove::new(D4, E3, false, None),
+      PieceMove::new(D4, F2, false, None),
+      PieceMove::new(D4, G1, false, None),
+      // Bishop on A1 moves (can't go to A1 as it's blocked by D4 bishop)
+      PieceMove::new(A1, B2, false, None),
+      PieceMove::new(A1, C3, false, None),
+      // Note: D4 is occupied by own bishop, so A1 bishop can't go there
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_bishop_edge_cases() {
+    // Bishop on edge of board
+    let board = GameData::from_fen("8/8/8/8/B7/8/8/8 w - - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // From A4, only top-right and bottom-right diagonals available
+      PieceMove::new(A4, B5, false, None),
+      PieceMove::new(A4, C6, false, None),
+      PieceMove::new(A4, D7, false, None),
+      PieceMove::new(A4, E8, false, None),
+      PieceMove::new(A4, B3, false, None),
+      PieceMove::new(A4, C2, false, None),
+      PieceMove::new(A4, D1, false, None),
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_no_bishops() {
+    // No bishops on the board
+    let board = GameData::from_fen("8/8/8/8/8/8/8/8 w - - 0 1").unwrap();
+    let (_moves, count) = generate_bishop_moves(&board.board);
+
+    assert_eq!(count, 0);
+  }
+
+  #[test]
+  fn test_bishop_initial_position() {
+    // Standard chess starting position bishops
+    let board =
+      GameData::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
+    let (_moves, count) = generate_bishop_moves(&board.board);
+
+    // Bishops should have no moves in starting position due to pawns blocking
+    assert_eq!(count, 0);
+  }
+
+  #[test]
+  fn test_bishop_after_pawn_moves() {
+    // Position after some pawn moves to open up bishop diagonals
+    let board =
+      GameData::from_fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1").unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    let expected_moves = vec![
+      // White bishop on F1 can now move
+      PieceMove::new(F1, E2, false, None),
+      PieceMove::new(F1, D3, false, None),
+      PieceMove::new(F1, C4, false, None),
+      PieceMove::new(F1, B5, false, None),
+      PieceMove::new(F1, A6, false, None),
+    ];
+
+    assert_eq!(
+      sort_and_compare_moves(generated_moves),
+      sort_and_compare_moves(expected_moves)
+    );
+  }
+
+  #[test]
+  fn test_complex_bishop_position() {
+    // Complex position with mixed piece placement
+    let board =
+      GameData::from_fen("r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1")
+        .unwrap();
+    let (moves, count) = generate_bishop_moves(&board.board);
+    let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
+
+    // This tests a more realistic game position
+    // White bishop on C4 should have several moves available
+    let mut found_bishop_moves = false;
+    for move_item in &generated_moves {
+      if move_item.from_square() == C4 {
+        found_bishop_moves = true;
+        break;
+      }
+    }
+    assert!(found_bishop_moves, "Should find moves for bishop on C4");
+    assert!(count > 0, "Should generate some bishop moves");
+  }
+}
