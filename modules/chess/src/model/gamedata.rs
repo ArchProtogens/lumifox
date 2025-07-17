@@ -291,10 +291,10 @@ impl GameData {
       fen.push('-');
     } else {
       let sq = self.board.en_passant.to_square();
-      let file = (sq % 8) as u8;
+      let file = sq % 8;
       let rank = 8 - (sq / 8);
       fen.push((b'a' + file) as char);
-      fen.push((b'0' + rank as u8) as char);
+      fen.push((b'0' + rank) as char);
     }
     fen.push(' ');
 
@@ -363,9 +363,9 @@ impl GameData {
         if let Some(c) = self.get_piece_char(sq) {
           // White pieces in bright white, black pieces in yellow
           if c.is_ascii_uppercase() {
-            print!("\x1b[97m{}\x1b[0m ", c);
+            print!("\x1b[97m{c}\x1b[0m ");
           } else {
-            print!("\x1b[33m{}\x1b[0m ", c);
+            print!("\x1b[33m{c}\x1b[0m ");
           }
         } else {
           // Empty square
@@ -388,7 +388,8 @@ mod tests {
   /// It parses a FEN, generates a new FEN from the result,
   /// and asserts they are identical.
   fn fen_roundtrip_test(fen: &str) {
-    let gamedata = GameData::from_fen(fen).expect(&format!("FEN parsing failed for: {}", fen));
+    let gamedata =
+      GameData::from_fen(fen).unwrap_or_else(|_| panic!("FEN parsing failed for: {fen}"));
     let new_fen = gamedata.to_fen();
     assert_eq!(fen, new_fen);
   }

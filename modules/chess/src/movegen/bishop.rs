@@ -16,8 +16,6 @@
  * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
  */
 
-use core::u64;
-
 use crate::{
   constants::{FILE_A, FILE_H}, // Added FILE_A for wrap-around protection
   model::{bitboard::BitBoard, gameboard::GameBoard, piecemove::PieceMove},
@@ -47,7 +45,7 @@ pub(crate) fn generate_bishop_moves(state: &GameBoard) -> ([PieceMove; MAX_BISHO
   // Ray-casting for all 4 diagonal directions
 
   // 1. Top Left moves (shift by 7)
-  let mut ray_attackers: u64 = my_bishops.clone().into();
+  let mut ray_attackers: u64 = my_bishops.into();
   for i in 1..8 {
     // We move the bishops up-left, and remove all who warp around to file H.
     ray_attackers = (ray_attackers << 7) & !FILE_H;
@@ -88,7 +86,7 @@ pub(crate) fn generate_bishop_moves(state: &GameBoard) -> ([PieceMove; MAX_BISHO
   }
 
   // 2. Top Right moves (shift by 9)
-  ray_attackers = my_bishops.clone().into();
+  ray_attackers = my_bishops.into();
   for i in 1..8 {
     // We move the bishops up-right, and remove all who warp around to file A.
     ray_attackers = (ray_attackers << 9) & !FILE_A;
@@ -120,7 +118,7 @@ pub(crate) fn generate_bishop_moves(state: &GameBoard) -> ([PieceMove; MAX_BISHO
   }
 
   // 3. Bottom Left moves (shift by -9)
-  ray_attackers = my_bishops.clone().into();
+  ray_attackers = my_bishops.into();
   for i in 1..8 {
     // We move the bishops down-left, and remove all who warp around to file H.
     ray_attackers = (ray_attackers >> 9) & !FILE_H;
@@ -152,7 +150,7 @@ pub(crate) fn generate_bishop_moves(state: &GameBoard) -> ([PieceMove; MAX_BISHO
   }
 
   // 4. Bottom Right moves (shift by -7)
-  ray_attackers = my_bishops.clone().into();
+  ray_attackers = my_bishops.into();
   for i in 1..8 {
     // We move the bishops down-right, and remove all who warp around to file A.
     ray_attackers = (ray_attackers >> 7) & !FILE_A;

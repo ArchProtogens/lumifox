@@ -21,27 +21,9 @@ use crate::model::{
   gameboard::GameBoard,
   piecemove::{PieceMove, PromotionType},
 };
+use crate::movegen::add_move_to_list;
 
 pub const MAX_PAWN_MOVES: usize = 56;
-
-/// Helper function to add a move
-#[inline]
-fn add_move_to_list(
-  moves: &mut [PieceMove; MAX_PAWN_MOVES],
-  count: &mut usize,
-  piece_move: PieceMove,
-) {
-  if *count < MAX_PAWN_MOVES {
-    moves[*count] = piece_move;
-    *count += 1;
-  } else {
-    #[cfg(debug_assertions)]
-    panic!(
-      "Move array overflow! MAX_PAWN_MOVES (={}) is too small.",
-      MAX_PAWN_MOVES
-    );
-  }
-}
 
 pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MOVES], usize) {
   let mut moves = [PieceMove::NULL; MAX_PAWN_MOVES];
@@ -118,21 +100,25 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, false, Some(PromotionType::Queen)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, false, Some(PromotionType::Rook)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, false, Some(PromotionType::Bishop)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, false, Some(PromotionType::Knight)),
       );
     } else {
@@ -140,6 +126,7 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, false, None),
       );
     }
@@ -165,6 +152,7 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
     add_move_to_list(
       &mut moves,
       &mut count,
+      MAX_PAWN_MOVES,
       PieceMove::new(from_sq_idx, to_sq_idx, false, None),
     );
 
@@ -193,21 +181,25 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Queen)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Rook)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Bishop)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Knight)),
       );
     } else {
@@ -215,6 +207,7 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, None),
       );
     }
@@ -245,21 +238,25 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Queen)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Rook)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Bishop)),
       );
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, Some(PromotionType::Knight)),
       );
     } else {
@@ -267,6 +264,7 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new(from_sq_idx, to_sq_idx, true, None),
       );
     }
@@ -300,6 +298,7 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
       add_move_to_list(
         &mut moves,
         &mut count,
+        MAX_PAWN_MOVES,
         PieceMove::new_en_passant(from_sq, ep_target_sq),
       );
       attackers &= attackers - 1;

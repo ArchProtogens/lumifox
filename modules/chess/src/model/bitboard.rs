@@ -38,7 +38,7 @@ impl BitBoard {
     if index < 64 {
       self.data |= 1 << index;
     } else {
-      panic!("Index out of bounds: {}", index);
+      panic!("Index out of bounds: {index}");
     }
   }
 
@@ -46,7 +46,7 @@ impl BitBoard {
     if index < 64 {
       self.data &= !(1 << index);
     } else {
-      panic!("Index out of bounds: {}", index);
+      panic!("Index out of bounds: {index}");
     }
   }
 
@@ -54,7 +54,7 @@ impl BitBoard {
     if index < 64 {
       (self.data & (1 << index)) != 0
     } else {
-      panic!("Index out of bounds: {}", index);
+      panic!("Index out of bounds: {index}");
     }
   }
 
@@ -109,7 +109,7 @@ impl Shl<u8> for BitBoard {
   type Output = Self;
   fn shl(self, rhs: u8) -> Self::Output {
     if rhs > 63 {
-      panic!("Shift amount out of bounds: {}", rhs);
+      panic!("Shift amount out of bounds: {rhs}");
     }
     Self::new(self.data << rhs)
   }
@@ -120,7 +120,7 @@ impl Shr<u8> for BitBoard {
 
   fn shr(self, rhs: u8) -> Self::Output {
     if rhs > 63 {
-      panic!("Shift amount out of bounds: {}", rhs);
+      panic!("Shift amount out of bounds: {rhs}");
     }
     Self::new(self.data >> rhs)
   }

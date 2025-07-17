@@ -16,11 +16,45 @@
  * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
  */
 
-use crate::model::{gameboard::GameBoard, piecemove::PieceMove};
+use crate::{
+  model::{gameboard::GameBoard, piecemove::PieceMove},
+  movegen::{bishop::MAX_BISHOP_MOVES, pawn::MAX_PAWN_MOVES},
+};
 pub mod bishop;
 pub mod pawn;
 
-pub fn generate_moves(state: &GameBoard) -> ([PieceMove; pawn::MAX_PAWN_MOVES], usize) {
-  //
-  pawn::generate_pawn_moves(state)
+pub const MAX_MOVES: usize = MAX_PAWN_MOVES + MAX_BISHOP_MOVES;
+
+/// Helper function to add a move
+#[inline]
+fn add_move_to_list(
+  moves: &mut [PieceMove],
+  count: &mut usize,
+  size: usize,
+  piece_move: PieceMove,
+) {
+  if *count <= size {
+    moves[*count] = piece_move;
+    *count += 1;
+  } else {
+    #[cfg(debug_assertions)]
+    panic!("Move array overflow! {size} is too small.");
+  }
+}
+
+pub fn generate_moves(state: &GameBoard) -> ([PieceMove; MAX_MOVES], usize) {
+  let mut moves = [PieceMove::NULL; MAX_MOVES];
+  let mut count = 0;
+
+  let (pawn_moves, pawn_count) = pawn::generate_pawn_moves(state);
+  for &piece_move in pawn_moves.iter().take(pawn_count) {
+    add_move_to_list(&mut moves, &mut count, MAX_PAWN_MOVES, piece_move);
+  }
+
+  let (bishop_moves, bishop_count) = bishop::generate_bishop_moves(state);
+  for &piece_move in bishop_moves.iter().take(bishop_count) {
+    add_move_to_list(&mut moves, &mut count, MAX_BISHOP_MOVES, piece_move);
+  }
+
+  (moves, count)
 }

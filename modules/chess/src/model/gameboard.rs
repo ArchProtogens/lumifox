@@ -171,8 +171,8 @@ impl GameBoard {
   }
 
   pub fn move_piece(&mut self, piece_move: &PieceMove) {
-    if !self.is_move_legal(&piece_move) {
-      panic!("Illegal move attempted: {:?}", piece_move);
+    if !self.is_move_legal(piece_move) {
+      panic!("Illegal move attempted: {piece_move:?}");
     }
 
     // Update the board state based on the piece move

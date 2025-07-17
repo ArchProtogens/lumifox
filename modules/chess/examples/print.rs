@@ -18,7 +18,7 @@ fn print_move(piece_move: &PieceMove) {
       to / 8 + 1
     );
     if let Some(promotion) = piece_move.promotion_type() {
-      println!("Promotion to {:?}", promotion);
+      println!("Promotion to {promotion:?}");
     }
   }
 }
@@ -65,7 +65,8 @@ fn main() {
         .get(rnd_id)
         .expect("Random move index out of bounds");
 
-      print!("Random move: ");
+      let piece_type = game.board.get_piece(random_move.from_square()).unwrap();
+      print!("Random move of {piece_type:?}: ");
       print_move(random_move);
       game.board.move_piece(random_move);
     }
