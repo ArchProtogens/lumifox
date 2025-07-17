@@ -311,8 +311,6 @@ pub(crate) fn generate_pawn_moves(state: &GameBoard) -> ([PieceMove; MAX_PAWN_MO
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::constants::*;
-  use crate::model::gameboard::GameBoard;
   use crate::model::gamedata::GameData;
   use crate::model::piecemove::{PieceMove, PromotionType};
 
