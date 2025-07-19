@@ -24,10 +24,14 @@ use crate::{
 pub mod bishop;
 pub mod knight;
 pub mod pawn;
+pub mod queen;
 pub mod rook;
 
-pub const MAX_MOVES: usize =
-  MAX_PAWN_MOVES + MAX_BISHOP_MOVES + MAX_KNIGHT_MOVES + rook::MAX_ROOK_MOVES;
+pub const MAX_MOVES: usize = MAX_PAWN_MOVES
+  + MAX_BISHOP_MOVES
+  + MAX_KNIGHT_MOVES
+  + rook::MAX_ROOK_MOVES
+  + queen::MAX_QUEEN_MOVES;
 
 /// Helper function to add a move
 #[inline]
@@ -67,6 +71,11 @@ pub fn generate_moves(state: &GameBoard) -> ([PieceMove; MAX_MOVES], usize) {
 
   let (rook_moves, rook_count) = rook::generate_rook_moves(state);
   for &piece_move in rook_moves.iter().take(rook_count) {
+    add_move_to_list(&mut moves, &mut count, MAX_MOVES, piece_move);
+  }
+
+  let (queen_moves, queen_count) = queen::generate_queen_moves(state);
+  for &piece_move in queen_moves.iter().take(queen_count) {
     add_move_to_list(&mut moves, &mut count, MAX_MOVES, piece_move);
   }
 
