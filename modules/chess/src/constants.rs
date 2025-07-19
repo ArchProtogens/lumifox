@@ -26,6 +26,12 @@ pub const EMPTY: u8 = 0; // Represents a completely empty square
 pub const WHITE: u8 = 0; // Bit 3 for color (0 for white)
 
 pub const FILE_A: u64 = 0x0101_0101_0101_0101;
+pub const FILE_B: u64 = 0x0202_0202_0202_0202;
+pub const FILE_C: u64 = 0x0404_0404_0404_0404;
+pub const FILE_D: u64 = 0x0808_0808_0808_0808;
+pub const FILE_E: u64 = 0x1010_1010_1010_1010;
+pub const FILE_F: u64 = 0x2020_2020_2020_2020;
+pub const FILE_G: u64 = 0x4040_4040_4040_4040;
 pub const FILE_H: u64 = 0x8080_8080_8080_8080;
 pub const RANK_1: u64 = 0x0000_0000_0000_00FF;
 pub const RANK_2: u64 = 0x0000_0000_0000_FF00;

@@ -24,7 +24,7 @@
 
 use core::fmt::Debug;
 
-#[derive(Clone, Copy, PartialEq, Eq)] // Added traits for easier use with arrays/debugging
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)] // Added traits for easier use with arrays/debugging
 pub struct PieceMove(u16);
 
 impl Debug for PieceMove {

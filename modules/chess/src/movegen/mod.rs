@@ -18,12 +18,14 @@
 
 use crate::{
   model::{gameboard::GameBoard, piecemove::PieceMove},
-  movegen::{bishop::MAX_BISHOP_MOVES, pawn::MAX_PAWN_MOVES},
+  movegen::{bishop::MAX_BISHOP_MOVES, knight::MAX_KNIGHT_MOVES, pawn::MAX_PAWN_MOVES},
 };
+
 pub mod bishop;
+pub mod knight;
 pub mod pawn;
 
-pub const MAX_MOVES: usize = MAX_PAWN_MOVES + MAX_BISHOP_MOVES;
+pub const MAX_MOVES: usize = MAX_PAWN_MOVES + MAX_BISHOP_MOVES + MAX_KNIGHT_MOVES;
 
 /// Helper function to add a move
 #[inline]
@@ -48,12 +50,17 @@ pub fn generate_moves(state: &GameBoard) -> ([PieceMove; MAX_MOVES], usize) {
 
   let (pawn_moves, pawn_count) = pawn::generate_pawn_moves(state);
   for &piece_move in pawn_moves.iter().take(pawn_count) {
-    add_move_to_list(&mut moves, &mut count, MAX_PAWN_MOVES, piece_move);
+    add_move_to_list(&mut moves, &mut count, MAX_MOVES, piece_move);
   }
 
   let (bishop_moves, bishop_count) = bishop::generate_bishop_moves(state);
   for &piece_move in bishop_moves.iter().take(bishop_count) {
-    add_move_to_list(&mut moves, &mut count, MAX_BISHOP_MOVES, piece_move);
+    add_move_to_list(&mut moves, &mut count, MAX_MOVES, piece_move);
+  }
+
+  let (knight_moves, knight_count) = knight::generate_knight_moves(state);
+  for &piece_move in knight_moves.iter().take(knight_count) {
+    add_move_to_list(&mut moves, &mut count, MAX_MOVES, piece_move);
   }
 
   (moves, count)

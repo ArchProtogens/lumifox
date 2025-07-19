@@ -316,14 +316,7 @@ mod tests {
 
   // Helper function to sort and compare PieceMove arrays
   fn sort_and_compare_moves(mut moves: Vec<PieceMove>) -> Vec<PieceMove> {
-    moves.sort_by_key(|m| {
-      (
-        m.from_square(),
-        m.to_square(),
-        m.is_capture(),
-        m.promotion_type().map(|p| p as u8).unwrap_or(0),
-      )
-    });
+    moves.sort();
     moves
   }
 
