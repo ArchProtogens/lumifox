@@ -575,6 +575,8 @@ mod tests {
     let (moves, count) = generate_rook_moves(&board.board);
     let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
 
+    drop(generated_moves); // Drop to avoid unused variable warning
+
     // In this position, rooks should still have no moves due to blocking pawns
     assert_eq!(count, 0);
   }
