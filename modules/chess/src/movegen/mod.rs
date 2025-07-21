@@ -22,6 +22,7 @@ use crate::{
 };
 
 pub mod bishop;
+pub mod king;
 pub mod knight;
 pub mod pawn;
 pub mod queen;
@@ -31,7 +32,8 @@ pub const MAX_MOVES: usize = MAX_PAWN_MOVES
   + MAX_BISHOP_MOVES
   + MAX_KNIGHT_MOVES
   + rook::MAX_ROOK_MOVES
-  + queen::MAX_QUEEN_MOVES;
+  + queen::MAX_QUEEN_MOVES
+  + king::MAX_KING_MOVES;
 
 /// Helper function to add a move
 #[inline]
@@ -76,6 +78,11 @@ pub fn generate_moves(state: &GameBoard) -> ([PieceMove; MAX_MOVES], usize) {
 
   let (queen_moves, queen_count) = queen::generate_queen_moves(state);
   for &piece_move in queen_moves.iter().take(queen_count) {
+    add_move_to_list(&mut moves, &mut count, MAX_MOVES, piece_move);
+  }
+
+  let (king_moves, king_count) = king::generate_king_moves(state);
+  for &piece_move in king_moves.iter().take(king_count) {
     add_move_to_list(&mut moves, &mut count, MAX_MOVES, piece_move);
   }
 
