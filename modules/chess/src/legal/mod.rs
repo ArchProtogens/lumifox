@@ -16,10 +16,4 @@
  * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
  */
 
-#![cfg_attr(not(any(test, feature = "std")), no_std)]
-
-pub mod constants;
-pub mod errors;
-pub mod legal;
-pub mod model;
-pub mod movegen;
+mod attack;

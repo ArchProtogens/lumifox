@@ -42,6 +42,11 @@ pub const RANK_6: u64 = 0x0000_FF00_0000_0000;
 pub const RANK_7: u64 = 0x00FF_0000_0000_0000;
 pub const RANK_8: u64 = 0xFF00_0000_0000_0000;
 
+pub const NOT_A_FILE: u64 = !FILE_A;
+pub const NOT_AB_FILE: u64 = !(FILE_A | FILE_B);
+pub const NOT_H_FILE: u64 = !FILE_H;
+pub const NOT_GH_FILE: u64 = !(FILE_G | FILE_H);
+
 pub const FROM_MASK: u16 = 0b0000_0000_0011_1111;
 pub const DEST_MASK: u16 = 0b0000_1111_1100_0000;
 pub const PROMOTION_MASK: u16 = 0b0001_0000_0000_0000;
