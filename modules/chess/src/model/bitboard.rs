@@ -30,10 +30,12 @@ impl BitBoard {
   }
 
   /// Get the raw bits value
+  #[inline]
   pub fn raw(&self) -> u64 {
     self.data
   }
 
+  #[inline(always)]
   pub fn set_bit(&mut self, index: u8) {
     if index < 64 {
       self.data |= 1 << index;
@@ -42,6 +44,7 @@ impl BitBoard {
     }
   }
 
+  #[inline(always)]
   pub fn unset_bit(&mut self, index: u8) {
     if index < 64 {
       self.data &= !(1 << index);
@@ -50,6 +53,16 @@ impl BitBoard {
     }
   }
 
+  #[inline]
+  pub fn update_bit(&mut self, index: u8, value: bool) {
+    if value {
+      self.set_bit(index);
+    } else {
+      self.unset_bit(index);
+    }
+  }
+
+  #[inline(always)]
   pub fn get_bit(&self, index: u8) -> bool {
     if index < 64 {
       (self.data & (1 << index)) != 0

@@ -16,7 +16,10 @@
  * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
  */
 
-use crate::model::piecemove::{PieceMove, PromotionType};
+use crate::{
+  legal::attack::is_square_attacked,
+  model::piecemove::{PieceMove, PromotionType},
+};
 
 use super::bitboard::BitBoard;
 
@@ -95,59 +98,66 @@ impl GameBoard {
     )
   }
 
-  pub fn is_move_legal(&self, _piece_move: &PieceMove) -> bool {
-    // TODO: Implement move legality check
+  pub(crate) fn find_king(&self, is_white: bool) -> Option<u8> {
+    let king_board = if is_white {
+      self.kings & self.colour
+    } else {
+      self.kings & !self.colour
+    };
+
+    if king_board.raw() != BitBoard::EMPTY.raw() {
+      Some(king_board.raw().trailing_zeros() as u8)
+    } else {
+      None
+    }
+  }
+
+  pub fn is_move_legal(&self, piece_move: &PieceMove) -> bool {
+    let mut new_board = *self;
+    new_board.move_piece(piece_move);
+
+    // Check if the moving side's king is attacked after the move
+    if let Some(king_square) = new_board.find_king(self.playing)
+      && is_square_attacked(&new_board, king_square)
+    {
+      return false;
+    }
+
     true
   }
 
   pub fn get_piece(&self, square: u8) -> Option<PieceType> {
-    // Check each piece type in order and return the first one found
-    if self.pawns.get_bit(square) {
-      Some(PieceType::Pawn)
-    } else if self.knights.get_bit(square) {
-      Some(PieceType::Knight)
-    } else if self.bishops.get_bit(square) {
-      Some(PieceType::Bishop)
-    } else if self.rooks.get_bit(square) {
-      Some(PieceType::Rook)
-    } else if self.queens.get_bit(square) {
-      Some(PieceType::Queen)
-    } else if self.kings.get_bit(square) {
-      Some(PieceType::King)
-    } else {
-      None
-    }
+    let boards = [
+      (self.pawns, PieceType::Pawn),
+      (self.knights, PieceType::Knight),
+      (self.bishops, PieceType::Bishop),
+      (self.rooks, PieceType::Rook),
+      (self.queens, PieceType::Queen),
+      (self.kings, PieceType::King),
+    ];
+
+    boards
+      .iter()
+      .find(|(bb, _)| bb.get_bit(square))
+      .map(|(_, pt)| *pt)
   }
 
   pub fn clear_square(&mut self, square: u8) -> Option<PieceType> {
-    // Clear the specified square from all piece types and return which type was cleared
-    let removed = if self.pawns.get_bit(square) {
-      self.pawns.unset_bit(square);
-      Some(PieceType::Pawn)
-    } else if self.knights.get_bit(square) {
-      self.knights.unset_bit(square);
-      Some(PieceType::Knight)
-    } else if self.bishops.get_bit(square) {
-      self.bishops.unset_bit(square);
-      Some(PieceType::Bishop)
-    } else if self.rooks.get_bit(square) {
-      self.rooks.unset_bit(square);
-      Some(PieceType::Rook)
-    } else if self.queens.get_bit(square) {
-      self.queens.unset_bit(square);
-      Some(PieceType::Queen)
-    } else if self.kings.get_bit(square) {
-      self.kings.unset_bit(square);
-      Some(PieceType::King)
-    } else {
-      None
+    // find out which piece is on `square`
+    let piece = self.get_piece(square)?;
+    // pick the matching bitboard
+    let board = match piece {
+      PieceType::Pawn => &mut self.pawns,
+      PieceType::Knight => &mut self.knights,
+      PieceType::Bishop => &mut self.bishops,
+      PieceType::Rook => &mut self.rooks,
+      PieceType::Queen => &mut self.queens,
+      PieceType::King => &mut self.kings,
     };
-
-    // also clear the colour bit when a piece is removed
-    if removed.is_some() {
-      self.colour.unset_bit(square);
-    }
-    removed
+    // clear it
+    board.unset_bit(square);
+    self.colour.unset_bit(square);
+    Some(piece)
   }
 
   pub fn set_square(&mut self, square: u8, piece_type: PieceType, is_white: bool) {
@@ -163,11 +173,7 @@ impl GameBoard {
     };
 
     bitboard.set_bit(square);
-    if is_white {
-      self.colour.set_bit(square);
-    } else {
-      self.colour.unset_bit(square);
-    }
+    self.colour.update_bit(square, is_white);
   }
 
   pub fn move_piece(&mut self, piece_move: &PieceMove) {
