@@ -44,6 +44,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "lumifox_chess_proc"
+version = "0.1.0"
+dependencies = [
+ "lumifox_chess",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "lumifox_uci"
 version = "0.1.0"
 

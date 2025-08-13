@@ -1,4 +1,4 @@
 
 [workspace]
 resolver = "2"
-members = ["engine", "modules/chess", "modules/uci"]
+members = ["engine", "modules/chess", "modules/uci", "modules/proc"]

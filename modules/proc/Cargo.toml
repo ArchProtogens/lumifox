@@ -1,0 +1,32 @@
+# lumifox_chess_proc/Cargo.toml
+[package]
+name = "lumifox_chess_proc"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro = true # This line is crucial for defining a procedural macro crate
+
+[[example]]
+name = "fen_macro_test"
+path = "examples/fen_macro_test.rs"
+
+# This example intentionally fails to compile to demonstrate error handling
+# Run manually with: cargo build --example fen_macro_error_test (should fail)
+#[[example]]
+#name = "fen_macro_error_test"  
+#path = "examples/fen_macro_error_test.rs"
+
+[[example]]
+name = "chess_positions_demo"
+path = "examples/chess_positions_demo.rs"
+
+[dependencies]
+syn = { version = "2.0", features = [
+  "full",
+  "extra-traits",
+] } # Used for parsing Rust syntax trees
+quote = "1.0" # Used for generating Rust code
+proc-macro2 = "1.0" # Required by syn and quote
+# Dependency on your core chess engine crate to access GameData::from_fen and other types.
+lumifox_chess = { path = "../chess" }

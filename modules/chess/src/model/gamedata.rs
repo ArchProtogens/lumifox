@@ -421,14 +421,68 @@ impl GameData {
     }
   }
 
+  // Helper function to get piece character at a square
+  #[cfg(feature = "std")]
+  fn get_piece_icon(&self, square: u8) -> Option<char> {
+    if self.board.pawns.get_bit(square) {
+      Some(if self.board.colour.get_bit(square) {
+        '\u{265F}' // Black pawn
+      } else {
+        '\u{2659}' // White pawn
+      })
+    } else if self.board.knights.get_bit(square) {
+      Some(if self.board.colour.get_bit(square) {
+        '\u{265E}' // Black knight
+      } else {
+        '\u{2658}' // White knight
+      })
+    } else if self.board.bishops.get_bit(square) {
+      Some(if self.board.colour.get_bit(square) {
+        '\u{265D}' // Black bishop
+      } else {
+        '\u{2657}' // White bishop
+      })
+    } else if self.board.rooks.get_bit(square) {
+      Some(if self.board.colour.get_bit(square) {
+        '\u{265C}' // Black rook
+      } else {
+        '\u{2656}' // White rook
+      })
+    } else if self.board.queens.get_bit(square) {
+      Some(if self.board.colour.get_bit(square) {
+        '\u{265B}' // Black queen
+      } else {
+        '\u{2655}' // White queen
+      })
+    } else if self.board.kings.get_bit(square) {
+      Some(if self.board.colour.get_bit(square) {
+        '\u{265A}' // Black king
+      } else {
+        '\u{2654}' // White king
+      })
+    } else {
+      None
+    }
+  }
+
   #[cfg(feature = "std")]
   pub fn print_board(&self) {
+    use std::env;
+    let piecetype = env::var("PIECE_TYPE").unwrap_or_else(|_| "ascii".into());
+    if !vec!["ascii", "unicode"].contains(&piecetype.as_str()) {
+      return;
+    }
+
     // Print ranks 8 down to 1
     for rank in (0..8).rev() {
       print!("\x1b[37m{}\x1b[0m   ", rank + 1);
       for file in 0..8 {
         let sq = (rank * 8 + file) as u8;
-        if let Some(c) = self.get_piece_char(sq) {
+        if let Some(c) = match piecetype.as_str() {
+          "ascii" => self.get_piece_char(sq),
+          "unicode" => self.get_piece_icon(sq),
+          _ => None,
+        } {
           // White pieces in bright white, black pieces in yellow
           if c.is_ascii_uppercase() {
             print!("\x1b[97m{c}\x1b[0m ");

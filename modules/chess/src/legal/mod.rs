@@ -16,4 +16,4 @@
  * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
  */
 
-mod attack;
+pub mod attack;
