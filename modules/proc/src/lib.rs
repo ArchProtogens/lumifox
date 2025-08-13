@@ -157,7 +157,7 @@ pub fn sq(input: TokenStream) -> TokenStream {
   let bytes = s.as_bytes();
   let file = bytes[0];
   let rank = bytes[1];
-  if file < b'a' || file > b'h' || rank < b'1' || rank > b'8' {
+  if !(b'a'..=b'h').contains(&file) || !(b'1'..=b'8').contains(&rank) {
     return syn::Error::new(input.span(), "Square out of range a1..h8")
       .to_compile_error()
       .into();
@@ -182,14 +182,14 @@ pub fn bitboard(input: TokenStream) -> TokenStream {
     let b = s.as_bytes();
     let file = b[0];
     let rank = b[1];
-    if file < b'a' || file > b'h' || rank < b'1' || rank > b'8' {
+    if !(b'a'..=b'h').contains(&file) || !(b'1'..=b'8').contains(&rank) {
       return syn::Error::new(lit.span(), "Square out of range a1..h8")
         .to_compile_error()
         .into();
     }
     let file_idx = file - b'a';
     let rank_idx = rank - b'1';
-    let idx = rank_idx as u8 * 8 + file_idx as u8;
+    let idx = rank_idx * 8 + file_idx;
     bb |= 1u64 << idx;
   }
   TokenStream::from(quote! { lumifox_chess::model::bitboard::BitBoard::new(#bb) })
@@ -210,7 +210,7 @@ pub fn san(input: TokenStream) -> TokenStream {
   let parse_sq = |off: usize, span| {
     let file = b[off];
     let rank = b[off + 1];
-    if file < b'a' || file > b'h' || rank < b'1' || rank > b'8' {
+    if !(b'a'..=b'h').contains(&file) || !(b'1'..=b'8').contains(&rank) {
       return Err(syn::Error::new(span, "Square out of range").to_compile_error());
     }
     let idx = (rank - b'1') as u8 * 8 + (file - b'a') as u8;
