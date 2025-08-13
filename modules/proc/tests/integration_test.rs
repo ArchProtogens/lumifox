@@ -70,6 +70,6 @@ mod tests {
     assert!(endgame.board.playing); // White to move
     assert_eq!(endgame.board.castling, 0); // No castling rights
     assert_eq!(endgame.halfmove_clock, 0);
-    assert_eq!(endgame.plies, 109); // Move 55 = (55-1)*2 + 0 for white = 108, but this seems to be 109 for some reason
+    assert_eq!(endgame.plies, 108);
   }
 }
