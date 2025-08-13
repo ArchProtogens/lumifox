@@ -3,6 +3,7 @@
 name = "lumifox_chess_proc"
 version = "0.1.0"
 edition = "2021"
+license = "LGPL-3.0-or-later"
 
 [lib]
 proc-macro = true # This line is crucial for defining a procedural macro crate

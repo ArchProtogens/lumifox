@@ -10,7 +10,8 @@ More information about the engine will be added when, and if, I get to it, sorry
 
 This project uses multiple licenses.
 
-- The `lumifox_chess` module is licensed under the LGPL-3.0-or-later.
-- The `lumifox_uci` module is licensed under the LGPL-3.0-or-later or BSD-3-Clause.
+- The [`lumifox_chess`](./modules/chess) module is licensed under the LGPL-3.0-or-later.
+- The [`lumifox_chess_proc`](./modules/proc/) module is licensed under the LGPL-3.0-or-later.
+- The [`lumifox_uci`](./modules/uci/) module is licensed under the LGPL-3.0-or-later or BSD-3-Clause.
 
 Please see the `LICENCE` files in the respective modules for more information.
