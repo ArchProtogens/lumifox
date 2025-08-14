@@ -17,6 +17,7 @@
  */
 
 use crate::{
+  constants::{A1, A8, D1, D8, F1, F8, H1, H8},
   legal::attack::is_square_attacked,
   model::piecemove::{PieceMove, PromotionType},
 };
@@ -502,16 +503,87 @@ impl GameBoard {
   /// Intended for internal use (e.g., simulation inside `is_move_legal`).
   /// NOTE: This does NOT switch turns - the caller is responsible for that.
   fn apply_move_unchecked(&mut self, piece_move: &PieceMove) {
-    // Update the board state based on the piece move
     let from_square = piece_move.from_square();
     let to_square = piece_move.to_square();
+    let mover_white = self.playing;
 
     // Remove the piece from the from_square
     let piece = self
       .clear_square(from_square)
       .expect("No piece found at from_square");
 
-    // Handle special cases like en passant, promotion, etc.
+    // Update castling rights for the moving piece
+    if piece == PieceType::King {
+      if mover_white {
+        self.castling &= !0b0011; // Clear white kingside and queenside
+      } else {
+        self.castling &= !0b1100; // Clear black kingside and queenside
+      }
+    } else if piece == PieceType::Rook {
+      let home_ks = if mover_white { H1 } else { H8 }; // h1 or h8
+      let home_qs = if mover_white { A1 } else { A8 }; // a1 or a8
+      if from_square == home_ks {
+        if mover_white {
+          self.castling &= !0b0001; // Clear white kingside
+        } else {
+          self.castling &= !0b0100; // Clear black kingside
+        }
+      } else if from_square == home_qs {
+        if mover_white {
+          self.castling &= !0b0010; // Clear white queenside
+        } else {
+          self.castling &= !0b1000; // Clear black queenside
+        }
+      }
+    }
+
+    // Handle castling: move the rook if this is a castling move
+    if piece == PieceType::King && (to_square as i32 - from_square as i32).abs() == 2 {
+      let is_kingside = to_square > from_square;
+      let rook_from = if mover_white {
+        if is_kingside { H1 } else { A1 }
+      } else if is_kingside {
+        H8
+      } else {
+        A8
+      };
+      let rook_to = if mover_white {
+        if is_kingside { F1 } else { D1 }
+      } else if is_kingside {
+        F8
+      } else {
+        D8
+      };
+      // Move the rook (clear old position, set new)
+      self.clear_square(rook_from);
+      self.set_square(rook_to, PieceType::Rook, mover_white);
+    }
+
+    // Clear the destination square and handle capture
+    let captured_opt = self.clear_square(to_square);
+    if let Some(captured) = captured_opt {
+      // If captured an opponent's rook on its home square, update their castling rights
+      if captured == PieceType::Rook {
+        let opp_white = !mover_white;
+        let opp_home_ks = if opp_white { H1 } else { H8 };
+        let opp_home_qs = if opp_white { A1 } else { A8 };
+        if to_square == opp_home_ks {
+          if opp_white {
+            self.castling &= !0b0001; // Clear white kingside
+          } else {
+            self.castling &= !0b0100; // Clear black kingside
+          }
+        } else if to_square == opp_home_qs {
+          if opp_white {
+            self.castling &= !0b0010; // Clear white queenside
+          } else {
+            self.castling &= !0b1000; // Clear black queenside
+          }
+        }
+      }
+    }
+
+    // Handle special cases like en passant, promotion
     if piece == PieceType::Pawn {
       // Handle en passant capture
       let from_file = from_square % 8;
@@ -519,12 +591,12 @@ impl GameBoard {
       let from_rank = from_square / 8;
       let to_rank = to_square / 8;
 
-      if (from_file as i8 - to_file as i8).abs() == 1
-        && (from_rank as i8 - to_rank as i8).abs() == 1
+      if (from_file as i32 - to_file as i32).abs() == 1
+        && (from_rank as i32 - to_rank as i32).abs() == 1
       {
         // If there is no piece on the target square, it's en passant -> remove the captured pawn
-        if self.clear_square(to_square).is_none() {
-          let captured_pawn_square = if self.playing {
+        if captured_opt.is_none() {
+          let captured_pawn_square = if mover_white {
             to_square - 8
           } else {
             to_square + 8
@@ -534,8 +606,8 @@ impl GameBoard {
       }
     }
 
+    // Place the piece on the to_square, handling promotion
     if piece_move.is_promotion() {
-      // Handle promotion
       let promotion_type = piece_move.promotion_type().expect("Promotion type not set");
       self.set_square(
         to_square,
@@ -545,14 +617,27 @@ impl GameBoard {
           PromotionType::Bishop => PieceType::Bishop,
           PromotionType::Knight => PieceType::Knight,
         },
-        self.playing,
+        mover_white,
       );
     } else {
-      // Place the piece on the to_square
-      self.set_square(to_square, piece, self.playing);
+      self.set_square(to_square, piece, mover_white);
     }
 
-    // NOTE: We don't switch turns here - the caller is responsible for that
+    // Reset en passant target
+    self.en_passant = PieceMove::NULL;
+
+    // Set new en passant target if this was a double pawn push
+    if piece == PieceType::Pawn
+      && from_square % 8 == to_square % 8
+      && (to_square as i32 - from_square as i32).abs() == 16
+    {
+      let skipped_square = if mover_white {
+        to_square - 8
+      } else {
+        to_square + 8
+      };
+      self.en_passant = PieceMove::new(to_square, skipped_square, false, None);
+    }
   }
 
   pub fn get_piece(&self, square: u8) -> Option<PieceType> {
