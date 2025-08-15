@@ -1,0 +1,1 @@
+{"rule":"A_BIT","sentence":"^\\QBit board Representation: Uses bit boards for an efficient representation of the board state.\\E$"}
