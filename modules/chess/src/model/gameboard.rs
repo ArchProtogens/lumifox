@@ -648,19 +648,27 @@ impl GameBoard {
   }
 
   pub fn get_piece(&self, square: u8) -> Option<PieceType> {
-    let boards = [
-      (self.pawns, PieceType::Pawn),
-      (self.knights, PieceType::Knight),
-      (self.bishops, PieceType::Bishop),
-      (self.rooks, PieceType::Rook),
-      (self.queens, PieceType::Queen),
-      (self.kings, PieceType::King),
-    ];
+    // Inline checks instead of building an array + iterator to reduce overhead
+    if self.pawns.get_bit(square).unwrap_or(false) {
+      return Some(PieceType::Pawn);
+    }
+    if self.knights.get_bit(square).unwrap_or(false) {
+      return Some(PieceType::Knight);
+    }
+    if self.bishops.get_bit(square).unwrap_or(false) {
+      return Some(PieceType::Bishop);
+    }
+    if self.rooks.get_bit(square).unwrap_or(false) {
+      return Some(PieceType::Rook);
+    }
+    if self.queens.get_bit(square).unwrap_or(false) {
+      return Some(PieceType::Queen);
+    }
+    if self.kings.get_bit(square).unwrap_or(false) {
+      return Some(PieceType::King);
+    }
 
-    boards
-      .iter()
-      .find(|(bb, _)| bb.get_bit(square).unwrap_or(false))
-      .map(|(_, pt)| *pt)
+    None
   }
 
   pub fn clear_square(&mut self, square: u8) -> Option<PieceType> {

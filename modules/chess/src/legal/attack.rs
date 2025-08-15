@@ -83,6 +83,11 @@ fn is_square_attacked_sliding(
   piece_bb: BitBoard,
   opponent_white: bool,
 ) -> bool {
+  // Cache frequently used bitboard raw values to avoid method call overhead
+  let occ: u64 = board.combined().into();
+  let colour_mask: u64 = board.colour.into();
+  let piece_mask: u64 = piece_bb.into();
+
   for &dir in dirs {
     let d_file = match dir {
       1 => 1,
@@ -121,10 +126,11 @@ fn is_square_attacked_sliding(
       if (curr_sq % 8) as i32 != expected_file || (curr_sq / 8) as i32 != expected_rank {
         break;
       }
-      if board.combined().get_bit_unchecked(curr_sq) {
-        if board.colour.get_bit_unchecked(curr_sq) == opponent_white
-          && piece_bb.get_bit_unchecked(curr_sq)
-        {
+      let bit = 1u64 << curr_sq;
+      if (occ & bit) != 0 {
+        // occupied square: check colour and piece membership using raw masks
+        let square_is_opponent = ((colour_mask & bit) != 0) == opponent_white;
+        if square_is_opponent && (piece_mask & bit) != 0 {
           return true;
         }
         break;
