@@ -124,7 +124,7 @@ impl GameBoard {
     let mut f = from_file + df;
     while r != to_rank || f != to_file {
       let sq = (r * 8 + f) as u8;
-      if self.combined().get_bit(sq) {
+      if self.combined().get_bit(sq).unwrap_or(false) {
         return false;
       }
       r += dr;
@@ -174,7 +174,10 @@ impl GameBoard {
 
   /// Check if the piece being moved belongs to the player whose turn it is
   fn is_correct_turn_piece(&self, piece_move: &PieceMove) -> bool {
-    self.colour.get_bit(piece_move.from_square()) == self.playing
+    self
+      .colour
+      .get_bit(piece_move.from_square())
+      .is_some_and(|f| f == self.playing)
   }
 
   /// Check if the destination square is valid (not occupied by friendly piece, not capturing king)
@@ -183,7 +186,7 @@ impl GameBoard {
 
     // Cannot move to square occupied by friendly piece
     if let Some(_) = self.get_piece(to)
-      && self.colour.get_bit(to) == self.playing
+      && self.colour.get_bit(to).is_some_and(|f| f == self.playing)
     {
       return false;
     }
@@ -225,7 +228,8 @@ impl GameBoard {
     let to_file = to % 8;
 
     let is_forward = (self.playing && to > from) || (!self.playing && from > to);
-    let is_capture = self.get_piece(to).is_some() && self.colour.get_bit(to) != self.playing;
+    let is_capture =
+      self.get_piece(to).is_some() && self.colour.get_bit(to).is_some_and(|f| f != self.playing);
     let is_en_passant = piece_move.is_en_passant();
     let is_promotion = piece_move.is_promotion();
 
@@ -404,13 +408,13 @@ impl GameBoard {
   fn are_castling_squares_clear(&self, from: u8, is_kingside: bool) -> bool {
     if is_kingside {
       for sq in [from + 1, from + 2] {
-        if self.combined().get_bit(sq) {
+        if self.combined().get_bit(sq).unwrap_or(false) {
           return false;
         }
       }
     } else {
       for sq in [from - 1, from - 2, from - 3] {
-        if self.combined().get_bit(sq) {
+        if self.combined().get_bit(sq).unwrap_or(false) {
           return false;
         }
       }
@@ -479,7 +483,10 @@ impl GameBoard {
     // Ensure the captured pawn exists and is opponent's
     let captured_pawn_square = if self.playing { to - 8 } else { to + 8 };
     if self.get_piece(captured_pawn_square) != Some(PieceType::Pawn)
-      || self.colour.get_bit(captured_pawn_square) == self.playing
+      || self
+        .colour
+        .get_bit(captured_pawn_square)
+        .is_some_and(|f| f == self.playing)
     {
       return false;
     }
@@ -652,7 +659,7 @@ impl GameBoard {
 
     boards
       .iter()
-      .find(|(bb, _)| bb.get_bit(square))
+      .find(|(bb, _)| bb.get_bit(square).unwrap_or(false))
       .map(|(_, pt)| *pt)
   }
 
@@ -692,7 +699,7 @@ impl GameBoard {
 
   pub fn move_piece(&mut self, piece_move: &PieceMove) {
     if !self.is_move_legal(piece_move) {
-      panic!("Illegal move attempted: {piece_move:?}");
+      ("Illegal move attempted: {piece_move:?}");
     }
     self.apply_move_unchecked(piece_move);
     self.playing = !self.playing; // Switch turn after applying the move
@@ -1226,7 +1233,7 @@ mod tests {
 
     // Before en passant - there should be a black pawn on d5
     assert_eq!(board.get_piece(D5), Some(PieceType::Pawn));
-    assert!(!board.colour.get_bit(D5)); // Black pawn
+    assert!(!board.colour.get_bit(D5).unwrap()); // Black pawn
 
     let en_passant = en_passant_move(E5, D6);
     assert!(board.is_move_legal(&en_passant));

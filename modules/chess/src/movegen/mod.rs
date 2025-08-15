@@ -43,13 +43,14 @@ fn add_move_to_list(
   size: usize,
   piece_move: PieceMove,
 ) {
-  if *count <= size {
-    moves[*count] = piece_move;
-    *count += 1;
-  } else {
-    #[cfg(debug_assertions)]
-    panic!("Move array overflow! {size} is too small.");
-  }
+  debug_assert!(
+    *count <= size,
+    "Count {} exceeds size limit of {}",
+    *count,
+    size
+  );
+  moves[*count] = piece_move;
+  *count += 1;
 }
 
 pub fn generate_moves(state: &GameBoard) -> ([PieceMove; MAX_MOVES], usize) {

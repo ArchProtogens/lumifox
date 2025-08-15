@@ -84,7 +84,7 @@ fn is_castling_move(mv: &PieceMove, game: &GameData) -> bool {
 
   // Check if it's a king move and matches castling pattern
   if let Some(PieceType::King) = game.board.get_piece(from) {
-    let is_white = game.board.colour.get_bit(from);
+    let is_white = game.board.colour.get_bit_unchecked(from);
     PieceMove::is_kingside_castling(from, to, is_white)
       || PieceMove::is_queenside_castling(from, to, is_white)
   } else {
@@ -134,7 +134,7 @@ fn main() {
 
   for square in 0..64 {
     if let Some(piece_type) = game.board.get_piece(square) {
-      let is_white = game.board.colour.get_bit(square);
+      let is_white = game.board.colour.get_bit_unchecked(square);
 
       // Check if this piece is attacked
       if is_square_attacked(&game.board, square) {

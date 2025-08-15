@@ -36,39 +36,61 @@ impl BitBoard {
   }
 
   #[inline(always)]
-  pub fn set_bit(&mut self, index: u8) {
+  pub fn set_bit(&mut self, index: u8) -> Option<u64> {
     if index < 64 {
-      self.data |= 1 << index;
+      self.set_bit_unchecked(index);
+      Some(self.data)
     } else {
-      panic!("Index out of bounds: {index}");
+      None
     }
   }
 
   #[inline(always)]
-  pub fn unset_bit(&mut self, index: u8) {
+  pub fn set_bit_unchecked(&mut self, index: u8) -> u64 {
+    debug_assert!(index < 64, "Index out of bounds: {index}");
+    self.data |= 1 << index;
+    self.data
+  }
+
+  #[inline(always)]
+  pub fn unset_bit(&mut self, index: u8) -> Option<u64> {
     if index < 64 {
-      self.data &= !(1 << index);
+      self.unset_bit_unchecked(index);
+      Some(self.data)
     } else {
-      panic!("Index out of bounds: {index}");
+      None
     }
+  }
+
+  #[inline(always)]
+  pub fn unset_bit_unchecked(&mut self, index: u8) -> u64 {
+    debug_assert!(index < 64, "Index out of bounds: {index}");
+    self.data &= !(1 << index);
+    self.data
   }
 
   #[inline]
-  pub fn update_bit(&mut self, index: u8, value: bool) {
+  pub fn update_bit(&mut self, index: u8, value: bool) -> Option<u64> {
     if value {
-      self.set_bit(index);
+      self.set_bit(index)
     } else {
-      self.unset_bit(index);
+      self.unset_bit(index)
     }
   }
 
   #[inline(always)]
-  pub fn get_bit(&self, index: u8) -> bool {
+  pub fn get_bit(&self, index: u8) -> Option<bool> {
     if index < 64 {
-      (self.data & (1 << index)) != 0
+      Some(self.get_bit_unchecked(index))
     } else {
-      panic!("Index out of bounds: {index}");
+      None
     }
+  }
+
+  #[inline(always)]
+  pub fn get_bit_unchecked(&self, index: u8) -> bool {
+    debug_assert!(index < 64, "Index out of bounds: {index}");
+    (self.data & (1 << index)) != 0
   }
 
   pub const EMPTY: Self = Self { data: 0 };
@@ -121,9 +143,6 @@ impl Not for BitBoard {
 impl Shl<u8> for BitBoard {
   type Output = Self;
   fn shl(self, rhs: u8) -> Self::Output {
-    if rhs > 63 {
-      panic!("Shift amount out of bounds: {rhs}");
-    }
     Self::new(self.data << rhs)
   }
 }
@@ -132,9 +151,6 @@ impl Shr<u8> for BitBoard {
   type Output = Self;
 
   fn shr(self, rhs: u8) -> Self::Output {
-    if rhs > 63 {
-      panic!("Shift amount out of bounds: {rhs}");
-    }
     Self::new(self.data >> rhs)
   }
 }

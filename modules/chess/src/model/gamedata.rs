@@ -198,7 +198,8 @@ impl GameData {
         }
         // Check that there's a black pawn on rank 5 (the pawn that just moved)
         let captured_pawn_square = (row_nbr - 1) * 8 + col_nbr; // rank 5
-        if !board.pawns.get_bit(captured_pawn_square) || board.colour.get_bit(captured_pawn_square)
+        if !board.pawns.get_bit_unchecked(captured_pawn_square)
+          || board.colour.get_bit_unchecked(captured_pawn_square)
         {
           return Err(FenParseError::InvalidEnPassantContext);
         }
@@ -216,7 +217,9 @@ impl GameData {
         let has_attacker = [left_attacker, right_attacker]
           .iter()
           .filter_map(|&sq| sq)
-          .any(|sq| board.pawns.get_bit(sq) && board.colour.get_bit(sq));
+          .any(|sq| {
+            board.pawns.get_bit(sq).unwrap_or(false) && board.colour.get_bit(sq).unwrap_or(false)
+          });
         if !has_attacker {
           return Err(FenParseError::InvalidEnPassantContext);
         }
@@ -228,7 +231,8 @@ impl GameData {
         }
         // Check that there's a white pawn on rank 4 (the pawn that just moved)
         let captured_pawn_square = (row_nbr + 1) * 8 + col_nbr; // rank 4
-        if !board.pawns.get_bit(captured_pawn_square) || !board.colour.get_bit(captured_pawn_square)
+        if !board.pawns.get_bit_unchecked(captured_pawn_square)
+          || !board.colour.get_bit_unchecked(captured_pawn_square)
         {
           return Err(FenParseError::InvalidEnPassantContext);
         }
@@ -246,7 +250,9 @@ impl GameData {
         let has_attacker = [left_attacker, right_attacker]
           .iter()
           .filter_map(|&sq| sq)
-          .any(|sq| board.pawns.get_bit(sq) && !board.colour.get_bit(sq));
+          .any(|sq| {
+            board.pawns.get_bit(sq).unwrap_or(false) && !board.colour.get_bit(sq).unwrap_or(false)
+          });
         if !has_attacker {
           return Err(FenParseError::InvalidEnPassantContext);
         }
@@ -254,7 +260,7 @@ impl GameData {
 
       // Check that the en passant target square itself is empty
       let square_index = row_nbr * 8 + col_nbr;
-      if board.combined().get_bit(square_index) {
+      if board.combined().get_bit_unchecked(square_index) {
         return Err(FenParseError::InvalidEnPassantContext);
       }
 
@@ -380,38 +386,38 @@ impl GameData {
   // Helper function to get piece character at a square
   #[cfg(feature = "std")]
   fn get_piece_char(&self, square: u8) -> Option<char> {
-    if self.board.pawns.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    if self.board.pawns.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         'P'
       } else {
         'p'
       })
-    } else if self.board.knights.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.knights.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         'N'
       } else {
         'n'
       })
-    } else if self.board.bishops.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.bishops.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         'B'
       } else {
         'b'
       })
-    } else if self.board.rooks.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.rooks.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         'R'
       } else {
         'r'
       })
-    } else if self.board.queens.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.queens.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         'Q'
       } else {
         'q'
       })
-    } else if self.board.kings.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.kings.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         'K'
       } else {
         'k'
@@ -424,38 +430,38 @@ impl GameData {
   // Helper function to get piece character at a square
   #[cfg(feature = "std")]
   fn get_piece_icon(&self, square: u8) -> Option<char> {
-    if self.board.pawns.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    if self.board.pawns.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         '\u{265F}' // Black pawn
       } else {
         '\u{2659}' // White pawn
       })
-    } else if self.board.knights.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.knights.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         '\u{265E}' // Black knight
       } else {
         '\u{2658}' // White knight
       })
-    } else if self.board.bishops.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.bishops.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         '\u{265D}' // Black bishop
       } else {
         '\u{2657}' // White bishop
       })
-    } else if self.board.rooks.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.rooks.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         '\u{265C}' // Black rook
       } else {
         '\u{2656}' // White rook
       })
-    } else if self.board.queens.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.queens.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         '\u{265B}' // Black queen
       } else {
         '\u{2655}' // White queen
       })
-    } else if self.board.kings.get_bit(square) {
-      Some(if self.board.colour.get_bit(square) {
+    } else if self.board.kings.get_bit(square).unwrap_or(false) {
+      Some(if self.board.colour.get_bit_unchecked(square) {
         '\u{265A}' // Black king
       } else {
         '\u{2654}' // White king

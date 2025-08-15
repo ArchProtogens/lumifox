@@ -39,7 +39,7 @@ fn is_square_attacked_pawn(board: &GameBoard, square: u8) -> bool {
     left_attacks | right_attacks
   };
 
-  attacks.get_bit(square)
+  attacks.get_bit_unchecked(square)
 }
 
 fn is_square_attacked_knight(board: &GameBoard, square: u8) -> bool {
@@ -121,8 +121,10 @@ fn is_square_attacked_sliding(
       if (curr_sq % 8) as i32 != expected_file || (curr_sq / 8) as i32 != expected_rank {
         break;
       }
-      if board.combined().get_bit(curr_sq) {
-        if board.colour.get_bit(curr_sq) == opponent_white && piece_bb.get_bit(curr_sq) {
+      if board.combined().get_bit_unchecked(curr_sq) {
+        if board.colour.get_bit_unchecked(curr_sq) == opponent_white
+          && piece_bb.get_bit_unchecked(curr_sq)
+        {
           return true;
         }
         break;

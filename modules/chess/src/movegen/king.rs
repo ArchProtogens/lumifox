@@ -139,7 +139,7 @@ pub(crate) fn generate_king_moves(state: &GameBoard) -> ([PieceMove; MAX_KING_MO
     };
 
     // Check if rook is in correct position and path is clear
-    if my_rooks.get_bit(rook_pos) && (all_occupied.raw() & empty_squares) == 0 {
+    if my_rooks.get_bit(rook_pos).unwrap_or(false) && (all_occupied.raw() & empty_squares) == 0 {
       let king_to = if state.playing {
         crate::constants::C1
       } else {
@@ -173,7 +173,7 @@ pub(crate) fn generate_king_moves(state: &GameBoard) -> ([PieceMove; MAX_KING_MO
     };
 
     // Check if rook is in correct position and path is clear
-    if my_rooks.get_bit(rook_pos) && (all_occupied.raw() & empty_squares) == 0 {
+    if my_rooks.get_bit(rook_pos).unwrap_or(false) && (all_occupied.raw() & empty_squares) == 0 {
       let king_to = if state.playing {
         crate::constants::G1
       } else {
