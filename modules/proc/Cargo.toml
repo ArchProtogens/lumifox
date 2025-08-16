@@ -16,4 +16,4 @@ syn = { version = "2.0", features = [
 quote = "1.0" # Used for generating Rust code
 proc-macro2 = "1.0" # Required by syn and quote
 # Dependency on your core chess engine crate to access GameData::from_fen and other types.
-lumifox_chess = { path = "../chess" }
+lumifox_chess = { path = "../chess", version = "0.1.0" }

@@ -475,7 +475,7 @@ impl GameData {
   pub fn print_board(&self) {
     use std::env;
     let piecetype = env::var("PIECE_TYPE").unwrap_or_else(|_| "ascii".into());
-    if !vec!["ascii", "unicode"].contains(&piecetype.as_str()) {
+    if !["ascii", "unicode"].contains(&piecetype.as_str()) {
       return;
     }
 

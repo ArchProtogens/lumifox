@@ -75,9 +75,9 @@ mod tests {
   #[test]
   fn rays_table_nonzero() {
     let mut found = 0;
-    for sq in 0..64 {
-      for d in 0..8 {
-        found += (RAYS[sq][d] != 0) as usize;
+    for row in RAYS.iter() {
+      for &val in row.iter() {
+        found += (val != 0) as usize;
       }
     }
     assert!(found > 0);

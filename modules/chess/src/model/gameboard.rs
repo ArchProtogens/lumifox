@@ -516,8 +516,9 @@ impl GameBoard {
 
     // Remove the piece from the from_square
     let piece = self
-      .clear_square(from_square)
-      .expect("No piece found at from_square");
+      .get_piece(from_square)
+      .expect("No piece at from_square");
+    self.clear_square(from_square);
 
     // Update castling rights for the moving piece
     if piece == PieceType::King {
@@ -567,8 +568,9 @@ impl GameBoard {
     }
 
     // Clear the destination square and handle capture
-    let captured_opt = self.clear_square(to_square);
+    let captured_opt = self.get_piece(to_square);
     if let Some(captured) = captured_opt {
+      self.clear_square(to_square);
       // If captured an opponent's rook on its home square, update their castling rights
       if captured == PieceType::Rook {
         let opp_white = !mover_white;
@@ -671,12 +673,7 @@ impl GameBoard {
     None
   }
 
-  pub fn clear_square(&mut self, square: u8) -> Option<PieceType> {
-    // Determine which piece (if any) is on the square
-    let piece = self.get_piece(square)?;
-    // Further it's using unchecked because if that one succeeds, we know
-    // the square is valid.
-
+  pub fn clear_square(&mut self, square: u8) -> Option<()> {
     // Clear the bit on every piece bitboard to ensure no stray bits remain
     let _ = self.pawns.unset_bit_unchecked(square);
     let _ = self.knights.unset_bit_unchecked(square);
@@ -688,7 +685,7 @@ impl GameBoard {
     // Clear the colour bit as well
     let _ = self.colour.unset_bit_unchecked(square);
 
-    Some(piece)
+    Some(())
   }
 
   pub fn set_square(&mut self, square: u8, piece_type: PieceType, is_white: bool) -> Option<()> {

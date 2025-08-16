@@ -645,9 +645,7 @@ mod tests {
     // White pawn on E5, black pawn on D5 (just moved from D7-D5)
     let board =
       GameData::from_fen("rnbqkbnr/ppp1pppp/8/2Pp4/8/8/PP1PPPPP/RNBQKBNR w KQkq d6 0 1").unwrap();
-    let board_ep = board.clone();
-
-    let (moves, count) = generate_pawn_moves(&board_ep.board);
+    let (moves, count) = generate_pawn_moves(&board.board);
     let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
 
     let expected_moves = vec![
@@ -670,9 +668,7 @@ mod tests {
     // Black pawn on E4, white pawn on D4 (just moved from D2-D4)
     let board =
       GameData::from_fen("rnbqkbnr/pppp1ppp/8/8/3Pp3/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1").unwrap();
-    let board_ep = board.clone();
-
-    let (moves, count) = generate_pawn_moves(&board_ep.board);
+    let (moves, count) = generate_pawn_moves(&board.board);
     let generated_moves: Vec<PieceMove> = moves[..count].to_vec();
 
     let expected_moves = vec![

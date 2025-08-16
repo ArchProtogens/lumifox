@@ -41,8 +41,7 @@ fn print_attack_moves(game: &GameData, attacked_square: u8) {
 
   // Find moves that attack the specified square
   let mut attack_moves = Vec::new();
-  for i in 0..count {
-    let mv = moves[i];
+  for &mv in moves.iter().take(count) {
     if mv.to_square() == attacked_square {
       attack_moves.push(mv);
     }
@@ -183,9 +182,8 @@ fn main() {
     let mut normal_moves = 0;
     let mut special_moves = 0;
 
-    for i in 0..count.min(10) {
+    for &mv in moves.iter().take(count.min(10)) {
       // Show first 10 moves as examples
-      let mv = moves[i];
       let from_sq = square_to_algebraic(mv.from_square());
       let to_sq = square_to_algebraic(mv.to_square());
       let from_piece = game.board.get_piece(mv.from_square());

@@ -2,5 +2,8 @@
 name = "lumifox"
 version = "0.1.0"
 edition = "2024"
+description = "Lumifox chess engine frontend binary"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ArchProtogens/lumifox"
 
 [dependencies]

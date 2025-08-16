@@ -3,5 +3,7 @@ name = "lumifox_uci"
 version = "0.1.0"
 edition = "2024"
 license = "LGPL-3.0-or-later or BSD-3-Clause"
+description = "UCI frontend for the Lumifox chess engine"
+repository = "https://github.com/ArchProtogens/lumifox"
 
 [dependencies]

@@ -238,8 +238,7 @@ fn main() {
 
       // Find matching legal move
       let mut selected_move = None;
-      for i in 0..count {
-        let mv = moves[i];
+      for &mv in moves.iter().take(count) {
         if mv.from_square() == from && mv.to_square() == to && mv.promotion_type() == promotion {
           selected_move = Some(mv);
           break;
@@ -260,7 +259,7 @@ fn main() {
               } else {
                 game.halfmove_clock += 1;
               }
-              if game.board.playing == false {
+              if !game.board.playing {
                 // After human move, it becomes AI's turn
                 move_counter += 1;
               }
@@ -306,21 +305,21 @@ fn main() {
 
           // Try to find a safe move from the remaining legal moves
           let mut found_safe_move = false;
-          for i in 0..count {
-            let test_mv = moves[i];
-            if test_mv != mv && game.board.is_move_legal(&test_mv) {
-              if let Ok(()) = safe_move_piece(&mut game, &test_mv) {
-                print!("🤖 AI plays (retry): ");
-                print_move(&test_mv);
-                game.plies += 1;
-                if test_mv.is_capture() {
-                  game.halfmove_clock = 0;
-                } else {
-                  game.halfmove_clock += 1;
-                }
-                found_safe_move = true;
-                break;
+          for &test_mv in moves.iter().take(count) {
+            if test_mv != mv
+              && game.board.is_move_legal(&test_mv)
+              && matches!(safe_move_piece(&mut game, &test_mv), Ok(()))
+            {
+              print!("🤖 AI plays (retry): ");
+              print_move(&test_mv);
+              game.plies += 1;
+              if test_mv.is_capture() {
+                game.halfmove_clock = 0;
+              } else {
+                game.halfmove_clock += 1;
               }
+              found_safe_move = true;
+              break;
             }
           }
 
