@@ -20,3 +20,4 @@ pub mod bitboard;
 pub mod gameboard;
 pub mod gamedata;
 pub mod piecemove;
+pub mod rays;

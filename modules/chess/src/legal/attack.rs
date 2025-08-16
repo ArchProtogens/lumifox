@@ -19,6 +19,7 @@
 use crate::constants::{FILE_A, FILE_H, NOT_A_FILE, NOT_AB_FILE, NOT_GH_FILE, NOT_H_FILE};
 use crate::model::bitboard::BitBoard;
 use crate::model::gameboard::GameBoard;
+use crate::model::rays::{DIR_OFFSETS, RAYS};
 
 fn is_square_attacked_pawn(board: &GameBoard, square: u8) -> bool {
   if square >= 64 {
@@ -88,57 +89,41 @@ fn is_square_attacked_sliding(
   let colour_mask: u64 = board.colour.into();
   let piece_mask: u64 = piece_bb.into();
 
+  // Map requested directions (i8 offsets) to the RAYS table indices.
+  // RAYS ordering matches DIR_OFFSETS constant.
   for &dir in dirs {
-    let d_file = match dir {
-      1 => 1,
-      -1 => -1,
-      8 => 0,
-      -8 => 0,
-      9 => 1,
-      -9 => -1,
-      7 => -1,
-      -7 => 1,
-      _ => continue,
+    // find index of dir in DIR_OFFSETS
+    let mut idx: usize = 0;
+    while idx < DIR_OFFSETS.len() {
+      if DIR_OFFSETS[idx] == dir {
+        break;
+      }
+      idx += 1;
+    }
+    if idx >= DIR_OFFSETS.len() {
+      continue; // unknown direction
+    }
+
+    let ray_mask = RAYS[square as usize][idx];
+    let blockers = occ & ray_mask;
+    if blockers == 0 {
+      continue;
+    }
+
+    // Determine nearest blocker depending on direction sign
+    let blocker_sq: u8 = if DIR_OFFSETS[idx] > 0 {
+      blockers.trailing_zeros() as u8
+    } else {
+      (63 - blockers.leading_zeros()) as u8
     };
-    let d_rank = match dir {
-      1 => 0,
-      -1 => 0,
-      8 => 1,
-      -8 => -1,
-      9 => 1,
-      -9 => -1,
-      7 => 1,
-      -7 => -1,
-      _ => continue,
-    };
-    let mut current = square as i32 + dir as i32;
-    let mut distance = 1;
-    loop {
-      if !(0..64).contains(&current) {
-        break;
-      }
-      let curr_sq = current as u8;
-      let expected_file = (square % 8) as i32 + d_file * distance;
-      let expected_rank = (square / 8) as i32 + d_rank * distance;
-      if !(0..=7).contains(&expected_file) || !(0..=7).contains(&expected_rank) {
-        break;
-      }
-      if (curr_sq % 8) as i32 != expected_file || (curr_sq / 8) as i32 != expected_rank {
-        break;
-      }
-      let bit = 1u64 << curr_sq;
-      if (occ & bit) != 0 {
-        // occupied square: check colour and piece membership using raw masks
-        let square_is_opponent = ((colour_mask & bit) != 0) == opponent_white;
-        if square_is_opponent && (piece_mask & bit) != 0 {
-          return true;
-        }
-        break;
-      }
-      current += dir as i32;
-      distance += 1;
+
+    let bit = 1u64 << blocker_sq;
+    let square_is_opponent = ((colour_mask & bit) != 0) == opponent_white;
+    if square_is_opponent && (piece_mask & bit) != 0 {
+      return true;
     }
   }
+
   false
 }
 
