@@ -649,22 +649,22 @@ impl GameBoard {
 
   pub fn get_piece(&self, square: u8) -> Option<PieceType> {
     // Inline checks instead of building an array + iterator to reduce overhead
-    if self.pawns.get_bit(square).unwrap_or(false) {
+    if self.pawns.get_bit(square)? {
       return Some(PieceType::Pawn);
     }
-    if self.knights.get_bit(square).unwrap_or(false) {
+    if self.knights.get_bit_unchecked(square) {
       return Some(PieceType::Knight);
     }
-    if self.bishops.get_bit(square).unwrap_or(false) {
+    if self.bishops.get_bit_unchecked(square) {
       return Some(PieceType::Bishop);
     }
-    if self.rooks.get_bit(square).unwrap_or(false) {
+    if self.rooks.get_bit_unchecked(square) {
       return Some(PieceType::Rook);
     }
-    if self.queens.get_bit(square).unwrap_or(false) {
+    if self.queens.get_bit_unchecked(square) {
       return Some(PieceType::Queen);
     }
-    if self.kings.get_bit(square).unwrap_or(false) {
+    if self.kings.get_bit_unchecked(square) {
       return Some(PieceType::King);
     }
 
@@ -672,26 +672,28 @@ impl GameBoard {
   }
 
   pub fn clear_square(&mut self, square: u8) -> Option<PieceType> {
-    // find out which piece is on `square`
+    // Determine which piece (if any) is on the square
     let piece = self.get_piece(square)?;
-    // pick the matching bitboard
-    let board = match piece {
-      PieceType::Pawn => &mut self.pawns,
-      PieceType::Knight => &mut self.knights,
-      PieceType::Bishop => &mut self.bishops,
-      PieceType::Rook => &mut self.rooks,
-      PieceType::Queen => &mut self.queens,
-      PieceType::King => &mut self.kings,
-    };
-    // clear it
-    board.unset_bit(square);
-    self.colour.unset_bit(square);
+    // Further it's using unchecked because if that one succeeds, we know
+    // the square is valid.
+
+    // Clear the bit on every piece bitboard to ensure no stray bits remain
+    let _ = self.pawns.unset_bit_unchecked(square);
+    let _ = self.knights.unset_bit_unchecked(square);
+    let _ = self.bishops.unset_bit_unchecked(square);
+    let _ = self.rooks.unset_bit_unchecked(square);
+    let _ = self.queens.unset_bit_unchecked(square);
+    let _ = self.kings.unset_bit_unchecked(square);
+
+    // Clear the colour bit as well
+    let _ = self.colour.unset_bit_unchecked(square);
+
     Some(piece)
   }
 
-  pub fn set_square(&mut self, square: u8, piece_type: PieceType, is_white: bool) {
+  pub fn set_square(&mut self, square: u8, piece_type: PieceType, is_white: bool) -> Option<()> {
     // Clear the square first
-    self.clear_square(square);
+    self.clear_square(square)?;
     let bitboard = match piece_type {
       PieceType::Pawn => &mut self.pawns,
       PieceType::Knight => &mut self.knights,
@@ -701,16 +703,17 @@ impl GameBoard {
       PieceType::King => &mut self.kings,
     };
 
-    bitboard.set_bit(square);
-    self.colour.update_bit(square, is_white);
+    bitboard.set_bit_unchecked(square);
+    self.colour.update_bit(square, is_white).map(|_f| ())
   }
 
-  pub fn move_piece(&mut self, piece_move: &PieceMove) {
+  pub fn move_piece(&mut self, piece_move: &PieceMove) -> Option<()> {
     if !self.is_move_legal(piece_move) {
-      ("Illegal move attempted: {piece_move:?}");
+      return None;
     }
     self.apply_move_unchecked(piece_move);
     self.playing = !self.playing; // Switch turn after applying the move
+    Some(())
   }
 }
 
