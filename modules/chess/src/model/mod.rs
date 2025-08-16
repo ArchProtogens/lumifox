@@ -16,6 +16,17 @@
  * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
  */
 
+//! Types and utilities for representing chess state.
+//!
+//! This module contains the core data structures used throughout the crate:
+//! - `bitboard` — compact bitboard helpers and masks
+//! - `gameboard` — the primary GameBoard structure and helpers (startpos, FEN)
+//! - `gamedata` — additional metadata for positions
+//! - `piecemove` — compact move representation used by the move generator
+//! - `rays` — precomputed directional ray bitboards used by sliding pieces
+//!
+//! These types are intentionally low-level and designed for performance.
+
 pub mod bitboard;
 pub mod gameboard;
 pub mod gamedata;

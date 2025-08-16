@@ -2,7 +2,14 @@
 name = "lumifox_chess"
 version = "0.1.0"
 edition = "2024"
-license = "LGPL-3.0-or-later"
+authors = ["Clifton Toaster Reid <clifton.toaster.reid@proton.me>"]
+description = "A high-performance, no_std-capable chess engine library (bitboards and move generation)."
+readme = "README.md"
+repository = "https://github.com/ArchProtogens/lumifox"
+homepage = "https://github.com/ArchProtogens/lumifox"
+documentation = "https://docs.rs/lumifox_chess"
+keywords = ["chess", "engine", "bitboard", "move-generation", "no_std"]
+categories = ["game-development"]
 
 [dependencies]
 

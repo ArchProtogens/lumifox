@@ -16,6 +16,15 @@
  * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
  */
 
+//! Move generation routines
+//!
+//! This module contains fast, allocation-free move generation for each piece
+//! type and a convenient `generate_moves` entry point that returns a fixed-size
+//! array of `PieceMove` and the number of generated moves.
+//!
+//! The implementation is optimized for performance and favors stack buffers
+//! and const-sized arrays to remain `no_std` friendly.
+
 use crate::{
   model::{gameboard::GameBoard, piecemove::PieceMove},
   movegen::{bishop::MAX_BISHOP_MOVES, knight::MAX_KNIGHT_MOVES, pawn::MAX_PAWN_MOVES},

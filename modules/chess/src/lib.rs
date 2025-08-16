@@ -18,6 +18,34 @@
 
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 
+//! Lumifox Chess — high-performance chess primitives
+//!
+//! This crate provides low-level, high-performance chess primitives suitable for
+//! building engines, UCI adapters, or analysis tools. It focuses on compact
+//! bitboard representations, efficient move generation, and no_std friendliness
+//! when the `std` feature is disabled.
+//!
+//! Key modules
+//! - `model` — board and piece representations (bitboards, moves, game state)
+//! - `movegen` — move generation for all piece types (fast, allocation-free)
+//! - `legal` — move legality checks and attack detection
+//! - `constants` — shared constants such as square indices and masks
+//! - `errors` — crate-specific error types
+//!
+//! Example
+//! ```rust
+//! use lumifox_chess::model::gameboard::GameBoard;
+//! use lumifox_chess::movegen::generate_moves;
+//!
+//! // Create a starting position and generate moves (API is intentionally low-level)
+//! let board = GameBoard::startpos();
+//! let (moves, count) = generate_moves(&board);
+//! assert!(count > 0);
+//! ```
+//!
+//! For higher-level documentation and usage examples see the crate README at
+//! <https://github.com/ArchProtogens/lumifox/tree/main/modules/chess>
+
 pub mod constants;
 pub mod errors;
 pub mod legal;
