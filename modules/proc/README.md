@@ -49,11 +49,11 @@ fn main() {
 The `fen!()` macro accepts standard FEN notation with all six components:
 
 1. **Piece placement**: Board state from rank 8 to rank 1
-2. **Active color**: "w" for white, "b" for black
+2. **Active colour**: "w" for white, "b" for black
 3. **Castling rights**: Combination of "K", "Q", "k", "q", or "-" for none
 4. **En passant target**: Target square or "-" for none
-5. **Halfmove clock**: Number of halfmoves since last capture or pawn move
-6. **Fullmove number**: Number of full moves (incremented after black's turn)
+5. **Half move clock**: Number of half moves since last capture or pawn move
+6. **Full move number**: Number of full moves (incremented after black's turn)
 
 ## Error Handling
 
@@ -77,6 +77,6 @@ Run the examples with:
 cargo run --example fen_macro_test
 ```
 
-## License
+## Licence
 
 This library is licensed under the LGPLv3. See the `LICENCE-LGPL-3.0.md` file for details.

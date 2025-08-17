@@ -4,6 +4,14 @@ name = "lumifox_chess_proc"
 version = "0.1.0"
 edition = "2021"
 license = "LGPL-3.0-or-later"
+description = "Procedural macros for the Lumifox chess engine: compile-time FEN, square, bitboard and SAN move literals."
+readme = "../../README.md"
+repository = "https://github.com/ArchProtogens/lumifox"
+homepage = "https://github.com/ArchProtogens/lumifox"
+documentation = "https://docs.rs/lumifox_chess_proc"
+authors = ["Clifton Toaster Reid <clifton@archprotogens.org>"]
+keywords = ["chess", "proc-macro", "fen", "bitboard", "uci", "game-engine"]
+categories = ["development-tools", "games"]
 
 [lib]
 proc-macro = true # This line is crucial for defining a procedural macro crate
@@ -17,3 +25,8 @@ quote = "1.0" # Used for generating Rust code
 proc-macro2 = "1.0" # Required by syn and quote
 # Dependency on your core chess engine crate to access GameData::from_fen and other types.
 lumifox_chess = { path = "../chess", version = "0.1.0" }
+
+[dev-dependencies]
+lumifox_chess = { path = "../chess", version = "0.1.0", features = [
+  "std",
+] } # For testing the procedural macros with the chess engine types
