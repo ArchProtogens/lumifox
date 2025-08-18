@@ -1,5 +1,5 @@
-use lumifox_chess::model::gamedata::GameData;
-use lumifox_chess_proc::fen;
+//use lumifox_chess::model::gamedata::GameData;
+//use lumifox_chess_proc::fen;
 
 fn main() {
   // This example demonstrates the kind of compile-time error produced
