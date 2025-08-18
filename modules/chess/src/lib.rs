@@ -38,7 +38,7 @@
 //! use lumifox_chess::movegen::generate_moves;
 //!
 //! // Create a starting position and generate moves (API is intentionally low-level)
-//! let board = GameBoard::startpos();
+//! let board = GameBoard::START_POS;
 //! let (moves, count) = generate_moves(&board);
 //! assert!(count > 0);
 //! ```

@@ -504,6 +504,13 @@ impl GameData {
     }
     println!("\n\x1b[37m    a b c d e f g h\x1b[0m"); // Print file labels
   }
+
+  pub const START_POS: GameData = GameData {
+    board: GameBoard::START_POS,
+    moves: [PieceMove::NULL; MAX_GAME_MOVES],
+    plies: 0,
+    halfmove_clock: 0,
+  };
 }
 
 #[cfg(test)]

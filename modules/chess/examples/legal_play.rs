@@ -24,27 +24,6 @@ use lumifox_chess::{
 };
 use std::io;
 
-// For bare metal compatibility, we can add conditional panic handler
-#[cfg(not(feature = "std"))]
-#[panic_handler]
-fn panic_handler(info: &core::panic::PanicInfo) -> ! {
-  // In bare metal environment, handle panic gracefully
-  loop {
-    // Halt execution safely
-  }
-}
-
-fn safe_move_piece(game: &mut GameData, mv: &PieceMove) -> Result<(), String> {
-  // Double-check legality before attempting the move to prevent panics
-  if !game.board.is_move_legal(mv) {
-    return Err(format!("Move {:?} is not legal", mv));
-  }
-
-  // Catch any potential panics by doing the move with extra validation
-  game.board.move_piece(mv);
-  Ok(())
-}
-
 fn print_move(piece_move: &PieceMove) {
   if *piece_move == PieceMove::NULL {
     println!("🚫 NULL move");
@@ -119,8 +98,7 @@ fn main() {
     }
   }
 
-  let starting_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  let mut game = GameData::from_fen(starting_fen).expect("Failed to parse starting FEN");
+  let mut game = GameData::START_POS;
 
   // Print beautiful welcome message
   println!("\n┌─────────────────────────────────────────────────────┐");
@@ -250,9 +228,9 @@ fn main() {
           print!("✅ You play: ");
           print_move(&mv);
 
-          // Use safe move function to prevent panics
-          match safe_move_piece(&mut game, &mv) {
-            Ok(()) => {
+          // Attempt to apply the move; move_piece returns Option<()> (None if illegal)
+          match game.board.move_piece(&mv) {
+            Some(()) => {
               game.plies += 1;
               if mv.is_capture() {
                 game.halfmove_clock = 0;
@@ -264,8 +242,8 @@ fn main() {
                 move_counter += 1;
               }
             }
-            Err(err) => {
-              println!("\n🚨 \x1b[1;31mINTERNAL ERROR:\x1b[0m {}", err);
+            None => {
+              println!("\n🚨 \x1b[1;31mINTERNAL ERROR:\x1b[0m move was rejected (illegal)");
               println!("⚠️  This indicates a bug in the chess engine.");
               println!("🔧 Please report this issue. Continuing game...\n");
               continue;
@@ -288,9 +266,10 @@ fn main() {
       print!("🤖 AI plays: ");
       print_move(&mv);
 
-      // Use safe move function for AI moves too
-      match safe_move_piece(&mut game, &mv) {
-        Ok(()) => {
+      // Use direct move_piece for AI moves (returns Option<()>). If it fails,
+      // try other legal moves. move_piece now returns None for illegal moves.
+      match game.board.move_piece(&mv) {
+        Some(()) => {
           game.plies += 1;
           if mv.is_capture() {
             game.halfmove_clock = 0;
@@ -298,28 +277,29 @@ fn main() {
             game.halfmove_clock += 1;
           }
         }
-        Err(err) => {
-          println!("\n🚨 \x1b[1;31mAI MOVE ERROR:\x1b[0m {}", err);
+        None => {
+          println!("\n🚨 \x1b[1;31mAI MOVE ERROR:\x1b[0m move was rejected (illegal)");
           println!("⚠️  This indicates a bug in the move generation.");
           println!("🔄 AI will try a different move...\n");
 
-          // Try to find a safe move from the remaining legal moves
+          // Try to find a safe move from the remaining legal moves. No need to
+          // call `is_move_legal` first because `move_piece` already performs
+          // legality checks and returns None if the move is illegal.
           let mut found_safe_move = false;
           for &test_mv in moves.iter().take(count) {
-            if test_mv != mv
-              && game.board.is_move_legal(&test_mv)
-              && matches!(safe_move_piece(&mut game, &test_mv), Ok(()))
-            {
-              print!("🤖 AI plays (retry): ");
-              print_move(&test_mv);
-              game.plies += 1;
-              if test_mv.is_capture() {
-                game.halfmove_clock = 0;
-              } else {
-                game.halfmove_clock += 1;
+            if test_mv != mv {
+              if let Some(()) = game.board.move_piece(&test_mv) {
+                print!("🤖 AI plays (retry): ");
+                print_move(&test_mv);
+                game.plies += 1;
+                if test_mv.is_capture() {
+                  game.halfmove_clock = 0;
+                } else {
+                  game.halfmove_clock += 1;
+                }
+                found_safe_move = true;
+                break;
               }
-              found_safe_move = true;
-              break;
             }
           }
 

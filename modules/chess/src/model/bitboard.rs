@@ -25,13 +25,13 @@ pub struct BitBoard {
 
 impl BitBoard {
   /// Create a new bitboard
-  pub fn new(data: u64) -> Self {
+  pub const fn new(data: u64) -> Self {
     Self { data }
   }
 
   /// Get the raw bits value
   #[inline]
-  pub fn raw(&self) -> u64 {
+  pub const fn raw(&self) -> u64 {
     self.data
   }
 

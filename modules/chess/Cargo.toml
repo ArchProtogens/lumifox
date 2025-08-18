@@ -16,6 +16,7 @@ categories = ["game-development"]
 
 [features]
 std = []
+precomputed_rays = []
 
 # Enable std for tests
 [dev-dependencies]

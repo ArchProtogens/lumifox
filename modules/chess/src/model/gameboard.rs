@@ -18,11 +18,13 @@
 
 use crate::{
   constants::{A1, A8, D1, D8, F1, F8, H1, H8},
-  legal::attack::is_square_attacked,
+  legal::checker::LegalChecker,
   model::piecemove::{PieceMove, PromotionType},
 };
 
 use super::bitboard::BitBoard;
+#[cfg(feature = "precomputed_rays")]
+use super::rays::BETWEEN;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PieceType {
@@ -112,8 +114,10 @@ impl GameBoard {
       None
     }
   }
+
   /// Check that all squares between `from` and `to` are empty (exclusive).
-  fn is_path_clear(&self, from: u8, to: u8) -> bool {
+  #[cfg(not(feature = "precomputed_rays"))]
+  pub(crate) fn is_path_clear(&self, from: u8, to: u8) -> bool {
     let from_rank = (from / 8) as i8;
     let from_file = (from % 8) as i8;
     let to_rank = (to / 8) as i8;
@@ -133,383 +137,28 @@ impl GameBoard {
     true
   }
 
-  pub fn is_move_legal(&self, piece_move: &PieceMove) -> bool {
-    // 1. Is the piece being moved the correct color for the current turn?
-    if !self.is_correct_turn_piece(piece_move) {
-      #[cfg(feature = "std")]
-      eprintln!("Failed: is_correct_turn_piece");
-      return false;
-    }
-
-    // 2. Is the move type allowed for the piece?
-    if !self.is_piece_move_valid(piece_move) {
-      #[cfg(feature = "std")]
-      eprintln!("Failed: is_piece_move_valid");
-      return false;
-    }
-
-    // 3. Is the destination square occupied by a friendly piece?
-    if !self.is_destination_valid(piece_move) {
-      #[cfg(feature = "std")]
-      eprintln!("Failed: is_destination_valid");
-      return false;
-    }
-
-    // 4. Check special moves (castling, en passant, promotion)
-    if !self.are_special_moves_valid(piece_move) {
-      #[cfg(feature = "std")]
-      eprintln!("Failed: are_special_moves_valid");
-      return false;
-    }
-
-    // 5. Is the move not leaving the moving side's king in check?
-    if !self.does_not_leave_king_in_check(piece_move) {
-      #[cfg(feature = "std")]
-      eprintln!("Failed: does_not_leave_king_in_check");
-      return false;
-    }
-
-    true
-  }
-
-  /// Check if the piece being moved belongs to the player whose turn it is
-  fn is_correct_turn_piece(&self, piece_move: &PieceMove) -> bool {
-    self
-      .colour
-      .get_bit(piece_move.from_square())
-      .is_some_and(|f| f == self.playing)
-  }
-
-  /// Check if the destination square is valid (not occupied by friendly piece, not capturing king)
-  fn is_destination_valid(&self, piece_move: &PieceMove) -> bool {
-    let to = piece_move.to_square();
-
-    // Cannot move to square occupied by friendly piece
-    if let Some(_) = self.get_piece(to)
-      && self.colour.get_bit(to).is_some_and(|f| f == self.playing)
-    {
-      return false;
-    }
-
-    // Rule 9: It's illegal to capture the opponent's king
-    if let Some(PieceType::King) = self.get_piece(to) {
-      return false;
-    }
-
-    true
-  }
-
-  /// Check if the piece move follows the movement rules for that piece type
-  fn is_piece_move_valid(&self, piece_move: &PieceMove) -> bool {
-    let from = piece_move.from_square();
-    let to = piece_move.to_square();
-    let piece_type = match self.get_piece(from) {
-      Some(pt) => pt,
-      None => return false,
-    };
-
-    match piece_type {
-      PieceType::Pawn => self.is_pawn_move_valid(piece_move),
-      PieceType::Knight => self.is_knight_move_valid(from, to),
-      PieceType::Bishop => self.is_bishop_move_valid(from, to),
-      PieceType::Rook => self.is_rook_move_valid(from, to),
-      PieceType::Queen => self.is_queen_move_valid(from, to),
-      PieceType::King => self.is_king_move_valid(piece_move),
-    }
-  }
-
-  /// Check if a pawn move is valid
-  fn is_pawn_move_valid(&self, piece_move: &PieceMove) -> bool {
-    let from = piece_move.from_square();
-    let to = piece_move.to_square();
-    let from_rank = from / 8;
-    let to_rank = to / 8;
-    let from_file = from % 8;
-    let to_file = to % 8;
-
-    let is_forward = (self.playing && to > from) || (!self.playing && from > to);
-    let is_capture =
-      self.get_piece(to).is_some() && self.colour.get_bit(to).is_some_and(|f| f != self.playing);
-    let is_en_passant = piece_move.is_en_passant();
-    let is_promotion = piece_move.is_promotion();
-
-    // Check if move direction is forward
-    if !is_forward {
-      return false;
-    }
-
-    // Straight move (forward)
-    if from_file == to_file {
-      return self.is_pawn_forward_move_valid(from, to, from_rank, to_rank, is_promotion);
-    }
-    // Diagonal move (capture or en passant)
-    else if (from_file as i8 - to_file as i8).abs() == 1 {
-      return self.is_pawn_diagonal_move_valid(piece_move, is_capture, is_en_passant, to_rank);
-    }
-
-    false
-  }
-
-  /// Check if a pawn forward move is valid
-  fn is_pawn_forward_move_valid(
-    &self,
-    from: u8,
-    to: u8,
-    from_rank: u8,
-    to_rank: u8,
-    is_promotion: bool,
-  ) -> bool {
-    let diff = to.abs_diff(from);
-
-    if diff == 8 {
-      // Single step forward
-      if self.get_piece(to).is_some() {
-        return false; // Blocked
-      }
-    } else if diff == 16 && ((from_rank == 1 && self.playing) || (from_rank == 6 && !self.playing))
-    {
-      // Double step from starting rank
-      let mid = if self.playing { from + 8 } else { from - 8 };
-      if self.get_piece(to).is_some() || self.get_piece(mid).is_some() {
-        return false; // Blocked
-      }
-    } else {
-      return false; // Invalid forward move
-    }
-
-    // Check promotion requirements
-    self.is_pawn_promotion_valid(to_rank, is_promotion)
-  }
-
-  /// Check if a pawn diagonal move (capture/en passant) is valid
-  fn is_pawn_diagonal_move_valid(
-    &self,
-    piece_move: &PieceMove,
-    is_capture: bool,
-    is_en_passant: bool,
-    to_rank: u8,
-  ) -> bool {
-    if !(is_capture || is_en_passant) {
-      return false; // Diagonal moves must be captures
-    }
-
-    // Check promotion requirements for diagonal moves
-    self.is_pawn_promotion_valid(to_rank, piece_move.is_promotion())
-  }
-
-  /// Check if pawn promotion is handled correctly
-  fn is_pawn_promotion_valid(&self, to_rank: u8, is_promotion: bool) -> bool {
-    let should_promote = (to_rank == 7 && self.playing) || (to_rank == 0 && !self.playing);
-
-    if should_promote && !is_promotion {
-      return false; // Must promote when reaching last rank
-    }
-
-    if !should_promote && is_promotion {
-      return false; // Cannot promote when not on last rank
-    }
-
-    true
-  }
-
-  /// Check if a knight move is valid
-  fn is_knight_move_valid(&self, from: u8, to: u8) -> bool {
-    let dr = (from / 8) as i8 - (to / 8) as i8;
-    let df = (from % 8) as i8 - (to % 8) as i8;
-    (dr.abs() == 2 && df.abs() == 1) || (dr.abs() == 1 && df.abs() == 2)
-  }
-
-  /// Check if a bishop move is valid
-  fn is_bishop_move_valid(&self, from: u8, to: u8) -> bool {
-    let dr = (from / 8) as i8 - (to / 8) as i8;
-    let df = (from % 8) as i8 - (to % 8) as i8;
-
-    if dr.abs() != df.abs() {
-      return false; // Not diagonal
-    }
-
-    self.is_path_clear(from, to)
-  }
-
-  /// Check if a rook move is valid
-  fn is_rook_move_valid(&self, from: u8, to: u8) -> bool {
-    let dr = (from / 8) as i8 - (to / 8) as i8;
-    let df = (from % 8) as i8 - (to % 8) as i8;
-
-    if dr != 0 && df != 0 {
-      return false; // Not straight
-    }
-
-    self.is_path_clear(from, to)
-  }
-
-  /// Check if a queen move is valid
-  fn is_queen_move_valid(&self, from: u8, to: u8) -> bool {
-    let dr = (from / 8) as i8 - (to / 8) as i8;
-    let df = (from % 8) as i8 - (to % 8) as i8;
-
-    let is_diagonal = dr.abs() == df.abs();
-    let is_straight = dr == 0 || df == 0;
-
-    if !(is_diagonal || is_straight) {
-      return false; // Queen must move diagonally or straight
-    }
-
-    self.is_path_clear(from, to)
-  }
-
-  /// Check if a king move is valid (including castling)
-  fn is_king_move_valid(&self, piece_move: &PieceMove) -> bool {
-    let from = piece_move.from_square();
-    let to = piece_move.to_square();
-    let dr = (from / 8) as i8 - (to / 8) as i8;
-    let df = (from % 8) as i8 - (to % 8) as i8;
-
-    // Normal king move (one square in any direction)
-    if dr.abs() <= 1 && df.abs() <= 1 {
+  /// Check that all squares between `from` and `to` are empty (exclusive).
+  #[cfg(feature = "precomputed_rays")]
+  pub(crate) fn is_path_clear(&self, from: u8, to: u8) -> bool {
+    let between_mask = BETWEEN[from as usize][to as usize];
+    if between_mask == 0 {
       return true;
     }
 
-    // Castling (two squares horizontally)
-    if dr == 0 && df.abs() == 2 {
-      return self.is_castling_valid(piece_move);
-    }
-
-    false
+    // If any occupied square intersects the BETWEEN mask, path is blocked.
+    (self.combined().raw() & between_mask) == 0
   }
 
-  /// Check if castling is valid
-  fn is_castling_valid(&self, piece_move: &PieceMove) -> bool {
-    let from = piece_move.from_square();
-    let to = piece_move.to_square();
-    let is_kingside = to == from + 2;
-
-    // Check castling rights
-    let (can_k, can_q) = if self.playing {
-      self.casling_right_white()
-    } else {
-      self.casling_right_black()
-    };
-
-    if (is_kingside && !can_k) || (!is_kingside && !can_q) {
-      return false;
-    }
-
-    // Check if intervening squares are empty
-    if !self.are_castling_squares_clear(from, is_kingside) {
-      return false;
-    }
-
-    // Check if king doesn't move through or into check
-    self.is_castling_path_safe(from, is_kingside)
-  }
-
-  /// Check if squares between king and rook are clear for castling
-  fn are_castling_squares_clear(&self, from: u8, is_kingside: bool) -> bool {
-    if is_kingside {
-      for sq in [from + 1, from + 2] {
-        if self.combined().get_bit(sq).unwrap_or(false) {
-          return false;
-        }
-      }
-    } else {
-      for sq in [from - 1, from - 2, from - 3] {
-        if self.combined().get_bit(sq).unwrap_or(false) {
-          return false;
-        }
-      }
-    }
-    true
-  }
-
-  /// Check if king doesn't move through check during castling
-  fn is_castling_path_safe(&self, from: u8, is_kingside: bool) -> bool {
-    let path = if is_kingside {
-      [from, from + 1, from + 2]
-    } else {
-      [from, from - 1, from - 2]
-    };
-
-    for &sq in &path {
-      if is_square_attacked(self, sq) {
-        return false;
-      }
-    }
-    true
-  }
-
-  /// Check if special moves are valid
-  fn are_special_moves_valid(&self, piece_move: &PieceMove) -> bool {
-    // En passant validation - only treat as en passant if there's no piece on target square
-    if piece_move.is_en_passant() && self.get_piece(piece_move.to_square()).is_none() {
-      return self.is_en_passant_valid(piece_move);
-    }
-
-    true
-  }
-
-  /// Check if en passant move is valid
-  fn is_en_passant_valid(&self, piece_move: &PieceMove) -> bool {
-    let from = piece_move.from_square();
-    let to = piece_move.to_square();
-    let ep_square = self.en_passant.to_square();
-
-    // En passant target square must match the move
-    if ep_square != to {
-      return false;
-    }
-
-    // Check move geometry
-    let from_file = from % 8;
-    let to_file = to % 8;
-    let from_rank = from / 8;
-    let to_rank = to / 8;
-
-    let correct_forward = if self.playing {
-      to_rank == from_rank + 1
-    } else {
-      to_rank + 1 == from_rank
-    };
-
-    if (from_file as i8 - to_file as i8).abs() != 1 || !correct_forward {
-      return false;
-    }
-
-    // Ensure no piece on target square (en passant doesn't capture there)
-    if self.get_piece(to).is_some() {
-      return false;
-    }
-
-    // Ensure the captured pawn exists and is opponent's
-    let captured_pawn_square = if self.playing { to - 8 } else { to + 8 };
-    if self.get_piece(captured_pawn_square) != Some(PieceType::Pawn)
-      || self
-        .colour
-        .get_bit(captured_pawn_square)
-        .is_some_and(|f| f == self.playing)
-    {
-      return false;
-    }
-
-    true
-  }
-
-  /// Check if the move doesn't leave the moving side's king in check
-  fn does_not_leave_king_in_check(&self, piece_move: &PieceMove) -> bool {
-    let mut new_board = *self;
-    new_board.apply_move_unchecked(piece_move);
-
-    if let Some(king_square) = new_board.find_king(self.playing) {
-      !is_square_attacked(&new_board, king_square)
-    } else {
-      false // No king found - invalid position
-    }
+  pub fn is_move_legal(&self, piece_move: &PieceMove) -> bool {
+    // Delegate to the unoptimised LegalChecker implementation
+    let checker = LegalChecker::new(self);
+    checker.is_move_legal(piece_move)
   }
 
   /// Apply a move to the board without any legality checks.
   /// Intended for internal use (e.g., simulation inside `is_move_legal`).
   /// NOTE: This does NOT switch turns - the caller is responsible for that.
-  fn apply_move_unchecked(&mut self, piece_move: &PieceMove) {
+  pub(crate) fn apply_move_unchecked(&mut self, piece_move: &PieceMove) {
     let from_square = piece_move.from_square();
     let to_square = piece_move.to_square();
     let mover_white = self.playing;
@@ -712,6 +361,19 @@ impl GameBoard {
     self.playing = !self.playing; // Switch turn after applying the move
     Some(())
   }
+
+  pub const START_POS: GameBoard = GameBoard {
+    pawns: BitBoard::new(0x00FF00000000FF00),
+    knights: BitBoard::new(0x4200000000000042),
+    bishops: BitBoard::new(0x2400000000000024),
+    rooks: BitBoard::new(0x8100000000000081),
+    queens: BitBoard::new(0x0800000000000008),
+    kings: BitBoard::new(0x1000000000000010),
+    colour: BitBoard::new(0x000000000000FFFF), // white pieces on ranks 1 and 2
+    castling: 0b1111,                          // KQkq
+    en_passant: PieceMove::NULL,
+    playing: true,
+  };
 }
 
 #[cfg(test)]
