@@ -112,15 +112,23 @@ impl<'a> LegalChecker<'a> {
     // Use precomputed pawn masks when available to validate simple pawn moves quickly.
     #[cfg(feature = "precomputed_rays")]
     {
-      // Forward (single) push
+      // Forward (single) push or double push
       if from_file == to_file {
         let push_mask = if self.board.playing {
           PAWN_PUSH_WHITE[from as usize]
         } else {
           PAWN_PUSH_BLACK[from as usize]
         };
-        return (push_mask & (1u64 << to)) != 0
-          && self.is_pawn_forward_move_valid(from, to, from_rank, to_rank, is_promotion);
+        // Single-step push is validated by the precomputed push mask.
+        if (push_mask & (1u64 << to)) != 0 {
+          return self.is_pawn_forward_move_valid(from, to, from_rank, to_rank, is_promotion);
+        }
+        // Two-square pawn advance (double push) is not represented in the single-step push mask,
+        // so explicitly allow it when the from/to match a two-square advance for the pawn's color.
+        if PieceMove::is_two_square_advance(from, to, self.board.playing) {
+          return self.is_pawn_forward_move_valid(from, to, from_rank, to_rank, is_promotion);
+        }
+        return false;
       }
 
       // Diagonal capture
