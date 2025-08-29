@@ -16,6 +16,15 @@
  * along with this library. If not, see <https://opensource.org/license/lgpl-3-0>.
  */
 
-pub mod attack;
-pub mod batch;
-pub mod checker;
+//! Chess declarative macros organized by functionality.
+//!
+//! This module contains compile-time chess utilities using macro_rules!:
+//! - FEN string parsing and validation
+//! - Square, bitboard, and move notation literals
+//! - Position creation and move list utilities
+//! - Chess opening lookup and search
+
+pub mod fen;
+pub mod literals;
+pub mod openings;
+pub mod positions;
