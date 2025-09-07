@@ -13,6 +13,8 @@
  * Copyright (C) 2025 Clifton Toaster Reid
  */
 
+use std::fmt::Display;
+
 /// Commands sent from the engine to the GUI
 #[derive(Debug, Clone, PartialEq)]
 pub enum EngineToGuiCommand {
@@ -156,25 +158,25 @@ pub enum OptionType {
   String { name: String, default: String },
 }
 
-impl ToString for EngineToGuiCommand {
-  fn to_string(&self) -> String {
-    match self {
+impl Display for EngineToGuiCommand {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let s = match self {
       EngineToGuiCommand::Id { name, author } => {
         let mut string = String::new();
         if let Some(name) = name {
-          string.push_str(&format!("id name {}\n", name));
+          string.push_str(&format!("id name {name}\n"));
         }
         if let Some(author) = author {
-          string.push_str(&format!("id author {}\n", author));
+          string.push_str(&format!("id author {author}\n"));
         }
         string
       }
       EngineToGuiCommand::UciOk => "uciok\n".to_string(),
       EngineToGuiCommand::ReadyOk => "readyok\n".to_string(),
       EngineToGuiCommand::BestMove { bestmove, ponder } => {
-        let mut string = format!("bestmove {}", bestmove);
+        let mut string = format!("bestmove {bestmove}");
         if let Some(ponder) = ponder {
-          string.push_str(&format!(" ponder {}", ponder));
+          string.push_str(&format!(" ponder {ponder}"));
         }
         string.push('\n');
         string
@@ -185,7 +187,7 @@ impl ToString for EngineToGuiCommand {
           ProtectionStatus::Ok => "ok",
           ProtectionStatus::Error => "error",
         };
-        format!("copyprotection {}\n", status_str)
+        format!("copyprotection {status_str}\n")
       }
       EngineToGuiCommand::Registration { status } => {
         let status_str = match status {
@@ -193,7 +195,7 @@ impl ToString for EngineToGuiCommand {
           RegistrationStatus::Ok => "ok",
           RegistrationStatus::Error => "error",
         };
-        format!("registration {}\n", status_str)
+        format!("registration {status_str}\n")
       }
       EngineToGuiCommand::Info { info } => {
         // Helper to format ScoreType
@@ -201,7 +203,7 @@ impl ToString for EngineToGuiCommand {
         fn fmt_score(score: &ScoreType) -> String {
           match score {
             ScoreType::Cp { value, bound } => {
-              let mut s = format!("score cp {}", value);
+              let mut s = format!("score cp {value}");
               if let Some(b) = bound {
                 let bstr = match b {
                   ScoreBound::LowerBound => " lowerbound",
@@ -212,7 +214,7 @@ impl ToString for EngineToGuiCommand {
               s
             }
             ScoreType::Mate { moves, bound } => {
-              let mut s = format!("score mate {}", moves);
+              let mut s = format!("score mate {moves}");
               if let Some(b) = bound {
                 let bstr = match b {
                   ScoreBound::LowerBound => " lowerbound",
@@ -228,35 +230,35 @@ impl ToString for EngineToGuiCommand {
         let mut line = String::from("info");
         for it in info {
           match it {
-            InfoType::Depth(d) => line.push_str(&format!(" depth {}", d)),
-            InfoType::SelDepth(d) => line.push_str(&format!(" seldepth {}", d)),
-            InfoType::Time(ms) => line.push_str(&format!(" time {}", ms)),
-            InfoType::Nodes(n) => line.push_str(&format!(" nodes {}", n)),
+            InfoType::Depth(d) => line.push_str(&format!(" depth {d}")),
+            InfoType::SelDepth(d) => line.push_str(&format!(" seldepth {d}")),
+            InfoType::Time(ms) => line.push_str(&format!(" time {ms}")),
+            InfoType::Nodes(n) => line.push_str(&format!(" nodes {n}")),
             InfoType::Pv(moves) => {
               if !moves.is_empty() {
                 line.push_str(" pv");
                 for mv in moves {
-                  line.push_str(&format!(" {}", mv));
+                  line.push_str(&format!(" {mv}"));
                 }
               }
             }
-            InfoType::MultiPv(n) => line.push_str(&format!(" multipv {}", n)),
+            InfoType::MultiPv(n) => line.push_str(&format!(" multipv {n}")),
             InfoType::Score(s) => line.push_str(&format!(" {}", fmt_score(s))),
-            InfoType::CurrMove(m) => line.push_str(&format!(" currmove {}", m)),
-            InfoType::CurrMoveNumber(n) => line.push_str(&format!(" currmovenumber {}", n)),
-            InfoType::HashFull(p) => line.push_str(&format!(" hashfull {}", p)),
-            InfoType::Nps(n) => line.push_str(&format!(" nps {}", n)),
-            InfoType::TbHits(n) => line.push_str(&format!(" tbhits {}", n)),
-            InfoType::SbHits(n) => line.push_str(&format!(" sbhits {}", n)),
-            InfoType::CpuLoad(p) => line.push_str(&format!(" cpuload {}", p)),
-            InfoType::String(s) => line.push_str(&format!(" string {}", s)),
+            InfoType::CurrMove(m) => line.push_str(&format!(" currmove {m}")),
+            InfoType::CurrMoveNumber(n) => line.push_str(&format!(" currmovenumber {n}")),
+            InfoType::HashFull(p) => line.push_str(&format!(" hashfull {p}")),
+            InfoType::Nps(n) => line.push_str(&format!(" nps {n}")),
+            InfoType::TbHits(n) => line.push_str(&format!(" tbhits {n}")),
+            InfoType::SbHits(n) => line.push_str(&format!(" sbhits {n}")),
+            InfoType::CpuLoad(p) => line.push_str(&format!(" cpuload {p}")),
+            InfoType::String(s) => line.push_str(&format!(" string {s}")),
             InfoType::Refutation {
               refuted_move,
               refutation_line,
             } => {
-              line.push_str(&format!(" refutation {}", refuted_move));
+              line.push_str(&format!(" refutation {refuted_move}"));
               for mv in refutation_line {
-                line.push_str(&format!(" {}", mv));
+                line.push_str(&format!(" {mv}"));
               }
             }
             InfoType::CurrLine {
@@ -265,10 +267,10 @@ impl ToString for EngineToGuiCommand {
             } => {
               line.push_str(" currline");
               if let Some(cpu) = cpu_nr {
-                line.push_str(&format!(" {}", cpu));
+                line.push_str(&format!(" {cpu}"));
               }
               for mv in moves {
-                line.push_str(&format!(" {}", mv));
+                line.push_str(&format!(" {mv}"));
               }
             }
           }
@@ -280,7 +282,7 @@ impl ToString for EngineToGuiCommand {
         let mut out = String::from("option");
         match option {
           OptionType::Check { name, default } => {
-            out.push_str(&format!(" name {} type check default {}", name, default));
+            out.push_str(&format!(" name {name} type check default {default}"));
           }
           OptionType::Spin {
             name,
@@ -289,8 +291,7 @@ impl ToString for EngineToGuiCommand {
             max,
           } => {
             out.push_str(&format!(
-              " name {} type spin default {} min {} max {}",
-              name, default, min, max
+              " name {name} type spin default {default} min {min} max {max}"
             ));
           }
           OptionType::Combo {
@@ -298,21 +299,23 @@ impl ToString for EngineToGuiCommand {
             default,
             vars,
           } => {
-            out.push_str(&format!(" name {} type combo default {}", name, default));
+            out.push_str(&format!(" name {name} type combo default {default}"));
             for v in vars {
-              out.push_str(&format!(" var {}", v));
+              out.push_str(&format!(" var {v}"));
             }
           }
           OptionType::Button { name } => {
-            out.push_str(&format!(" name {} type button", name));
+            out.push_str(&format!(" name {name} type button"));
           }
           OptionType::String { name, default } => {
-            out.push_str(&format!(" name {} type string default {}", name, default));
+            out.push_str(&format!(" name {name} type string default {default}"));
           }
         }
         out.push('\n');
         out
       }
-    }
+    };
+
+    write!(f, "{s}")
   }
 }
