@@ -13,14 +13,13 @@
  * Copyright (C) 2025 Clifton Toaster Reid
  */
 
-// Module declarations
-pub mod engine_to_gui;
-pub mod error;
-pub mod gui_to_engine;
+use thiserror::Error;
 
-// Re-exports for convenience
-pub use engine_to_gui::{
-  EngineToGuiCommand, InfoType, OptionType, ProtectionStatus, RegistrationStatus, ScoreBound,
-  ScoreType,
-};
-pub use gui_to_engine::{GuiToEngineCommand, PositionType};
+#[derive(Debug, Error)]
+pub enum UciError {
+  #[error("IO error: {0}")]
+  IO(std::io::Error),
+
+  #[error("Parser error: {0}")]
+  Parser(String),
+}
