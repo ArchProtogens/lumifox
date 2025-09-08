@@ -4,18 +4,32 @@ This module is an early proof-of-concept implementation of a UCI (Universal Ches
 handler for Lumifox. The current implementation provides typed enums for commands going to/from the
 GUI and a parser for GUI->Engine commands. Next steps:
 
+- [x] **COMPLETED**: Basic UCI protocol implementation with typed enums and parsing
+  - Added typed enums for Engine→GUI messages (`engine_to_gui.rs`)
+  - Added parser for GUI→Engine commands with position/go handling (`gui_to_engine.rs`)
+  - Added UCI error types with `thiserror` integration
+  - Implemented Display trait for modern command formatting
+  - Integrated `PieceMove` type for type-safe move representations
+  - Enhanced position handling with typed `GameData` parsing
+  - Extracted helper functions for better code organization
+
 - [ ] Hook this module into the main Lumifox engine so commands from GUIs actually drive the engine.
   - Define a small runtime adapter that translates `GuiToEngineCommand` into engine calls.
   - Provide an API for engine to send `EngineToGuiCommand` messages to the front-end.
+  - Implement a trait-based handler system that calls appropriate functions when UCI commands are received.
 
-- [ ] Improve error handling
-  - Replace simple string-based parsing errors with structured error types and mapping to proper
-    I/O / parse errors.
-  - Add robust handling for malformed input (extra tokens, quoted strings, etc.)
+- [x] **PARTIALLY COMPLETED**: Improve error handling
+  - Added `MoveParseError` enum with detailed error variants for move parsing
+  - Added `UciError` with `InvalidPieceMove` variant for robust error propagation
+  - Integrated FEN parsing error handling with `GameData::from_fen()`
+  - Replaced simple string-based parsing errors with structured error types
+  - **STILL NEEDED**: Robust handling for malformed input (extra tokens, quoted strings, etc.)
 
-- [ ] Provide a developer-friendly API
-  - Add builder helpers, typed setters and getters for options.
-  - Add ergonomic utilities to construct `Info` messages and `Option` declarations.
+- [x] **PARTIALLY COMPLETED**: Provide a developer-friendly API
+  - Added typed `PieceMove` integration replacing string-based moves
+  - Enhanced position handling with `GameData` struct instead of raw strings
+  - Extracted formatting and parsing helper functions
+  - **STILL NEEDED**: Builder helpers, typed setters/getters for options, ergonomic utilities for `Info` messages
 
 - [ ] Tests and examples
   - Add unit tests for parsing (`GuiToEngineCommand::from_str`) covering edge cases.
