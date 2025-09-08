@@ -13,6 +13,8 @@
  * Copyright (C) 2025 Clifton Toaster Reid
  */
 
+use lumifox_chess::model::piecemove::PieceMove;
+
 use crate::error::UciError;
 use std::str::FromStr;
 
@@ -46,13 +48,13 @@ pub enum GuiToEngineCommand {
     /// Either a FEN string or indicates starting position
     position: PositionType,
     /// Moves to play from the position
-    moves: Vec<String>,
+    moves: Vec<PieceMove>,
   },
 
   /// Start calculating on the current position
   Go {
     /// Restrict search to these moves only
-    searchmoves: Option<Vec<String>>,
+    searchmoves: Option<Vec<PieceMove>>,
     /// Start searching in pondering mode
     ponder: bool,
     /// White has x milliseconds left on the clock
@@ -91,9 +93,9 @@ pub enum GuiToEngineCommand {
 #[derive(Debug, Clone, PartialEq)]
 pub enum PositionType {
   /// Starting position
-  StartPos { moves: Vec<String> },
+  StartPos { moves: Vec<PieceMove> },
   /// Position from FEN string
-  Fen { fen: String, moves: Vec<String> },
+  Fen { fen: String, moves: Vec<PieceMove> },
 }
 
 impl FromStr for GuiToEngineCommand {
@@ -189,7 +191,7 @@ impl FromStr for GuiToEngineCommand {
         }
 
         let mut idx = 1;
-        let mut moves: Vec<String> = Vec::new();
+        let mut moves: Vec<PieceMove> = Vec::new();
 
         // Expect either "startpos" or "fen"
         if args[idx] == "startpos" {
@@ -198,7 +200,7 @@ impl FromStr for GuiToEngineCommand {
           if idx < args.len() && args[idx] == "moves" {
             idx += 1;
             while idx < args.len() {
-              moves.push(args[idx].to_string());
+              moves.push(PieceMove::from_str(args[idx])?);
               idx += 1;
             }
           }
@@ -234,7 +236,7 @@ impl FromStr for GuiToEngineCommand {
           if idx < args.len() && args[idx] == "moves" {
             idx += 1;
             while idx < args.len() {
-              moves.push(args[idx].to_string());
+              moves.push(PieceMove::from_str(args[idx])?);
               idx += 1;
             }
           }
@@ -256,7 +258,7 @@ impl FromStr for GuiToEngineCommand {
       "go" => {
         // defaults
         let mut idx = 1;
-        let mut searchmoves: Option<Vec<String>> = None;
+        let mut searchmoves: Option<Vec<PieceMove>> = None;
         let mut ponder = false;
         let mut wtime: Option<u64> = None;
         let mut btime: Option<u64> = None;
@@ -293,7 +295,7 @@ impl FromStr for GuiToEngineCommand {
                 {
                   break;
                 }
-                moves.push(kw.to_string());
+                moves.push(PieceMove::from_str(kw)?);
                 idx += 1;
               }
               searchmoves = Some(moves);

@@ -620,6 +620,7 @@ dependencies = [
 name = "lumifox_uci"
 version = "0.1.0"
 dependencies = [
+ "lumifox_chess",
  "thiserror",
 ]
 

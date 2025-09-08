@@ -8,3 +8,4 @@ repository = "https://github.com/ArchProtogens/lumifox"
 
 [dependencies]
 thiserror = "2.0.16"
+lumifox_chess = { path = "../chess" }

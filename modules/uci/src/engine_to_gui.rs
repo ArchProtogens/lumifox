@@ -15,6 +15,8 @@
 
 use std::fmt::Display;
 
+use lumifox_chess::model::piecemove::PieceMove;
+
 /// Commands sent from the engine to the GUI
 #[derive(Debug, Clone, PartialEq)]
 pub enum EngineToGuiCommand {
@@ -32,8 +34,8 @@ pub enum EngineToGuiCommand {
 
   /// Best move found
   BestMove {
-    bestmove: String,
-    ponder: Option<String>,
+    bestmove: PieceMove,
+    ponder: Option<PieceMove>,
   },
 
   /// Copy protection status
@@ -227,7 +229,7 @@ impl Display for EngineToGuiCommand {
           }
         }
 
-        let mut line = String::from("info");
+        let mut line = "info".to_string();
         for it in info {
           match it {
             InfoType::Depth(d) => line.push_str(&format!(" depth {d}")),

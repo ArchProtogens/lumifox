@@ -22,7 +22,12 @@
 // Bit 14:    IsPromotion (1 bit)
 // Bit 15:    IsCapture (1 bit)
 
-use core::fmt::Debug;
+use core::{
+  fmt::{Debug, Display},
+  str::FromStr,
+};
+
+use crate::errors::MoveParseError;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)] // Added traits for easier use with arrays/debugging
 pub struct PieceMove(u16);
@@ -47,6 +52,82 @@ impl Debug for PieceMove {
         self.promotion_type()
       )
     }
+  }
+}
+
+impl Display for PieceMove {
+  // Formats the move in standard algebraic notation (e.g., e2e4, e7e8q)
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    if *self == PieceMove::NULL {
+      return write!(f, "null");
+    }
+
+    let from = self.from_square();
+    let to = self.to_square();
+
+    let from_file = ((from % 8) + b'a') as char;
+    let from_rank = ((from / 8) + b'1') as char;
+    let to_file = ((to % 8) + b'a') as char;
+    let to_rank = ((to / 8) + b'1') as char;
+
+    if let Some(promo) = self.promotion_type() {
+      let promo_ch = match promo {
+        PromotionType::Queen => 'q',
+        PromotionType::Rook => 'r',
+        PromotionType::Bishop => 'b',
+        PromotionType::Knight => 'n',
+      };
+      write!(f, "{from_file}{from_rank}{to_file}{to_rank}{promo_ch}")
+    } else {
+      write!(f, "{from_file}{from_rank}{to_file}{to_rank}")
+    }
+  }
+}
+
+impl FromStr for PieceMove {
+  type Err = MoveParseError; // Structured error type for parsing failures
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    let s = s.trim();
+    if s.len() < 4 {
+      return Err(MoveParseError::TooShort);
+    }
+
+    let from_file = s.chars().nth(0).ok_or(MoveParseError::InvalidFromFile)?;
+    let from_rank = s.chars().nth(1).ok_or(MoveParseError::InvalidFromRank)?;
+    let to_file = s.chars().nth(2).ok_or(MoveParseError::InvalidToFile)?;
+    let to_rank = s.chars().nth(3).ok_or(MoveParseError::InvalidToRank)?;
+
+    let from_file_idx = (from_file as u8).wrapping_sub(b'a');
+    let from_rank_idx = (from_rank as u8).wrapping_sub(b'1');
+    let to_file_idx = (to_file as u8).wrapping_sub(b'a');
+    let to_rank_idx = (to_rank as u8).wrapping_sub(b'1');
+
+    if from_file_idx >= 8 || from_rank_idx >= 8 || to_file_idx >= 8 || to_rank_idx >= 8 {
+      return Err(MoveParseError::OutOfBounds);
+    }
+
+    let from_square = from_rank_idx * 8 + from_file_idx;
+    let to_square = to_rank_idx * 8 + to_file_idx;
+
+    let promotion_type = if s.len() > 4 {
+      match s.chars().nth(4).unwrap().to_ascii_lowercase() {
+        'q' => Some(PromotionType::Queen),
+        'r' => Some(PromotionType::Rook),
+        'b' => Some(PromotionType::Bishop),
+        'n' => Some(PromotionType::Knight),
+        _ => return Err(MoveParseError::InvalidPromotionPiece),
+      }
+    } else {
+      None
+    };
+
+    Ok(PieceMove::new(
+      from_square,
+      to_square,
+      false, // Capture flag is not encoded in the string
+      promotion_type,
+    ))
   }
 }
 

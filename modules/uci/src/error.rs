@@ -13,6 +13,7 @@
  * Copyright (C) 2025 Clifton Toaster Reid
  */
 
+use lumifox_chess::errors::MoveParseError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -22,4 +23,15 @@ pub enum UciError {
 
   #[error("Parser error: {0}")]
   Parser(String),
+
+  // Use Debug formatting since MoveParseError does not implement Display.
+  #[error("Invalid piece move: {0:?}")]
+  InvalidPieceMove(MoveParseError),
+}
+
+// Convenience conversion so `?` works with functions that return UciError.
+impl From<MoveParseError> for UciError {
+  fn from(e: MoveParseError) -> Self {
+    UciError::InvalidPieceMove(e)
+  }
 }

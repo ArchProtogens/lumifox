@@ -59,3 +59,21 @@ pub enum FenParseError {
   /// An unexpected character was encountered during parsing.
   UnexpectedCharacter,
 }
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum MoveParseError {
+  /// The move string is too short (less than 4 characters).
+  TooShort,
+  /// Invalid character for the from file.
+  InvalidFromFile,
+  /// Invalid character for the from rank.
+  InvalidFromRank,
+  /// Invalid character for the to file.
+  InvalidToFile,
+  /// Invalid character for the to rank.
+  InvalidToRank,
+  /// File or rank index is out of bounds (not 0-7).
+  OutOfBounds,
+  /// Invalid character for the promotion piece.
+  InvalidPromotionPiece,
+}
