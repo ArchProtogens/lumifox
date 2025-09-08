@@ -163,161 +163,175 @@ pub enum OptionType {
 impl Display for EngineToGuiCommand {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let s = match self {
-      EngineToGuiCommand::Id { name, author } => {
-        let mut string = String::new();
-        if let Some(name) = name {
-          string.push_str(&format!("id name {name}\n"));
-        }
-        if let Some(author) = author {
-          string.push_str(&format!("id author {author}\n"));
-        }
-        string
-      }
+      EngineToGuiCommand::Id { name, author } => fmt_id(name, author),
       EngineToGuiCommand::UciOk => "uciok\n".to_string(),
       EngineToGuiCommand::ReadyOk => "readyok\n".to_string(),
-      EngineToGuiCommand::BestMove { bestmove, ponder } => {
-        let mut string = format!("bestmove {bestmove}");
-        if let Some(ponder) = ponder {
-          string.push_str(&format!(" ponder {ponder}"));
-        }
-        string.push('\n');
-        string
-      }
-      EngineToGuiCommand::CopyProtection { status } => {
-        let status_str = match status {
-          ProtectionStatus::Checking => "checking",
-          ProtectionStatus::Ok => "ok",
-          ProtectionStatus::Error => "error",
-        };
-        format!("copyprotection {status_str}\n")
-      }
-      EngineToGuiCommand::Registration { status } => {
-        let status_str = match status {
-          RegistrationStatus::Checking => "checking",
-          RegistrationStatus::Ok => "ok",
-          RegistrationStatus::Error => "error",
-        };
-        format!("registration {status_str}\n")
-      }
-      EngineToGuiCommand::Info { info } => {
-        // Helper to format ScoreType
-        #[inline(always)]
-        fn fmt_score(score: &ScoreType) -> String {
-          match score {
-            ScoreType::Cp { value, bound } => {
-              let mut s = format!("score cp {value}");
-              if let Some(b) = bound {
-                let bstr = match b {
-                  ScoreBound::LowerBound => " lowerbound",
-                  ScoreBound::UpperBound => " upperbound",
-                };
-                s.push_str(bstr);
-              }
-              s
-            }
-            ScoreType::Mate { moves, bound } => {
-              let mut s = format!("score mate {moves}");
-              if let Some(b) = bound {
-                let bstr = match b {
-                  ScoreBound::LowerBound => " lowerbound",
-                  ScoreBound::UpperBound => " upperbound",
-                };
-                s.push_str(bstr);
-              }
-              s
-            }
-          }
-        }
-
-        let mut line = "info".to_string();
-        for it in info {
-          match it {
-            InfoType::Depth(d) => line.push_str(&format!(" depth {d}")),
-            InfoType::SelDepth(d) => line.push_str(&format!(" seldepth {d}")),
-            InfoType::Time(ms) => line.push_str(&format!(" time {ms}")),
-            InfoType::Nodes(n) => line.push_str(&format!(" nodes {n}")),
-            InfoType::Pv(moves) => {
-              if !moves.is_empty() {
-                line.push_str(" pv");
-                for mv in moves {
-                  line.push_str(&format!(" {mv}"));
-                }
-              }
-            }
-            InfoType::MultiPv(n) => line.push_str(&format!(" multipv {n}")),
-            InfoType::Score(s) => line.push_str(&format!(" {}", fmt_score(s))),
-            InfoType::CurrMove(m) => line.push_str(&format!(" currmove {m}")),
-            InfoType::CurrMoveNumber(n) => line.push_str(&format!(" currmovenumber {n}")),
-            InfoType::HashFull(p) => line.push_str(&format!(" hashfull {p}")),
-            InfoType::Nps(n) => line.push_str(&format!(" nps {n}")),
-            InfoType::TbHits(n) => line.push_str(&format!(" tbhits {n}")),
-            InfoType::SbHits(n) => line.push_str(&format!(" sbhits {n}")),
-            InfoType::CpuLoad(p) => line.push_str(&format!(" cpuload {p}")),
-            InfoType::String(s) => line.push_str(&format!(" string {s}")),
-            InfoType::Refutation {
-              refuted_move,
-              refutation_line,
-            } => {
-              line.push_str(&format!(" refutation {refuted_move}"));
-              for mv in refutation_line {
-                line.push_str(&format!(" {mv}"));
-              }
-            }
-            InfoType::CurrLine {
-              cpu_nr,
-              line: moves,
-            } => {
-              line.push_str(" currline");
-              if let Some(cpu) = cpu_nr {
-                line.push_str(&format!(" {cpu}"));
-              }
-              for mv in moves {
-                line.push_str(&format!(" {mv}"));
-              }
-            }
-          }
-        }
-        line.push('\n');
-        line
-      }
-      EngineToGuiCommand::Option { option } => {
-        let mut out = String::from("option");
-        match option {
-          OptionType::Check { name, default } => {
-            out.push_str(&format!(" name {name} type check default {default}"));
-          }
-          OptionType::Spin {
-            name,
-            default,
-            min,
-            max,
-          } => {
-            out.push_str(&format!(
-              " name {name} type spin default {default} min {min} max {max}"
-            ));
-          }
-          OptionType::Combo {
-            name,
-            default,
-            vars,
-          } => {
-            out.push_str(&format!(" name {name} type combo default {default}"));
-            for v in vars {
-              out.push_str(&format!(" var {v}"));
-            }
-          }
-          OptionType::Button { name } => {
-            out.push_str(&format!(" name {name} type button"));
-          }
-          OptionType::String { name, default } => {
-            out.push_str(&format!(" name {name} type string default {default}"));
-          }
-        }
-        out.push('\n');
-        out
-      }
+      EngineToGuiCommand::BestMove { bestmove, ponder } => fmt_bestmove(bestmove, ponder),
+      EngineToGuiCommand::CopyProtection { status } => fmt_copyprotection(status),
+      EngineToGuiCommand::Registration { status } => fmt_registration(status),
+      EngineToGuiCommand::Info { info } => fmt_info(info),
+      EngineToGuiCommand::Option { option } => fmt_option(option),
     };
 
     write!(f, "{s}")
   }
+}
+
+// Helper functions for formatting
+
+fn fmt_id(name: &Option<String>, author: &Option<String>) -> String {
+  let mut string = String::new();
+  if let Some(name) = name {
+    string.push_str(&format!("id name {name}\n"));
+  }
+  if let Some(author) = author {
+    string.push_str(&format!("id author {author}\n"));
+  }
+  string
+}
+
+fn fmt_bestmove(bestmove: &PieceMove, ponder: &Option<PieceMove>) -> String {
+  let mut string = format!("bestmove {bestmove}");
+  if let Some(ponder) = ponder {
+    string.push_str(&format!(" ponder {ponder}"));
+  }
+  string.push('\n');
+  string
+}
+
+fn fmt_copyprotection(status: &ProtectionStatus) -> String {
+  let status_str = match status {
+    ProtectionStatus::Checking => "checking",
+    ProtectionStatus::Ok => "ok",
+    ProtectionStatus::Error => "error",
+  };
+  format!("copyprotection {status_str}\n")
+}
+
+fn fmt_registration(status: &RegistrationStatus) -> String {
+  let status_str = match status {
+    RegistrationStatus::Checking => "checking",
+    RegistrationStatus::Ok => "ok",
+    RegistrationStatus::Error => "error",
+  };
+  format!("registration {status_str}\n")
+}
+
+fn fmt_info(info: &[InfoType]) -> String {
+  // Helper to format ScoreType
+  #[inline(always)]
+  fn fmt_score(score: &ScoreType) -> String {
+    match score {
+      ScoreType::Cp { value, bound } => {
+        let mut s = format!("score cp {value}");
+        if let Some(b) = bound {
+          let bstr = match b {
+            ScoreBound::LowerBound => " lowerbound",
+            ScoreBound::UpperBound => " upperbound",
+          };
+          s.push_str(bstr);
+        }
+        s
+      }
+      ScoreType::Mate { moves, bound } => {
+        let mut s = format!("score mate {moves}");
+        if let Some(b) = bound {
+          let bstr = match b {
+            ScoreBound::LowerBound => " lowerbound",
+            ScoreBound::UpperBound => " upperbound",
+          };
+          s.push_str(bstr);
+        }
+        s
+      }
+    }
+  }
+
+  let mut line = "info".to_string();
+  for it in info {
+    match it {
+      InfoType::Depth(d) => line.push_str(&format!(" depth {d}")),
+      InfoType::SelDepth(d) => line.push_str(&format!(" seldepth {d}")),
+      InfoType::Time(ms) => line.push_str(&format!(" time {ms}")),
+      InfoType::Nodes(n) => line.push_str(&format!(" nodes {n}")),
+      InfoType::Pv(moves) => {
+        if !moves.is_empty() {
+          line.push_str(" pv");
+          for mv in moves {
+            line.push_str(&format!(" {mv}"));
+          }
+        }
+      }
+      InfoType::MultiPv(n) => line.push_str(&format!(" multipv {n}")),
+      InfoType::Score(s) => line.push_str(&format!(" {}", fmt_score(s))),
+      InfoType::CurrMove(m) => line.push_str(&format!(" currmove {m}")),
+      InfoType::CurrMoveNumber(n) => line.push_str(&format!(" currmovenumber {n}")),
+      InfoType::HashFull(p) => line.push_str(&format!(" hashfull {p}")),
+      InfoType::Nps(n) => line.push_str(&format!(" nps {n}")),
+      InfoType::TbHits(n) => line.push_str(&format!(" tbhits {n}")),
+      InfoType::SbHits(n) => line.push_str(&format!(" sbhits {n}")),
+      InfoType::CpuLoad(p) => line.push_str(&format!(" cpuload {p}")),
+      InfoType::String(s) => line.push_str(&format!(" string {s}")),
+      InfoType::Refutation {
+        refuted_move,
+        refutation_line,
+      } => {
+        line.push_str(&format!(" refutation {refuted_move}"));
+        for mv in refutation_line {
+          line.push_str(&format!(" {mv}"));
+        }
+      }
+      InfoType::CurrLine {
+        cpu_nr,
+        line: moves,
+      } => {
+        line.push_str(" currline");
+        if let Some(cpu) = cpu_nr {
+          line.push_str(&format!(" {cpu}"));
+        }
+        for mv in moves {
+          line.push_str(&format!(" {mv}"));
+        }
+      }
+    }
+  }
+  line.push('\n');
+  line
+}
+
+fn fmt_option(option: &OptionType) -> String {
+  let mut out = String::from("option");
+  match option {
+    OptionType::Check { name, default } => {
+      out.push_str(&format!(" name {name} type check default {default}"));
+    }
+    OptionType::Spin {
+      name,
+      default,
+      min,
+      max,
+    } => {
+      out.push_str(&format!(
+        " name {name} type spin default {default} min {min} max {max}"
+      ));
+    }
+    OptionType::Combo {
+      name,
+      default,
+      vars,
+    } => {
+      out.push_str(&format!(" name {name} type combo default {default}"));
+      for v in vars {
+        out.push_str(&format!(" var {v}"));
+      }
+    }
+    OptionType::Button { name } => {
+      out.push_str(&format!(" name {name} type button"));
+    }
+    OptionType::String { name, default } => {
+      out.push_str(&format!(" name {name} type string default {default}"));
+    }
+  }
+  out.push('\n');
+  out
 }
