@@ -1,5 +1,5 @@
 use lumifox_chess::model::gamedata::GameData;
-use lumifox_chess_proc::{bitboard, fen, move_list, position, san, sq};
+use lumifox_chess_proc::{fen, move_list, position, san};
 
 fn main() {
   println!("Testing new chess macros: move_list! and position!");

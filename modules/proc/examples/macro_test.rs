@@ -25,7 +25,7 @@ fn main() {
   println!("Knight move: {:?}", knight_move);
 
   // Test FEN macro
-  let start_pos: GameData = fen!("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  let _start_pos: GameData = fen!("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   println!("Starting position created successfully");
 
   println!("All macros working correctly!");

@@ -2,7 +2,6 @@
  * Batch legal context for computing attack masks and opponent piece masks once per board.
  */
 
-use crate::constants::{NOT_A_FILE, NOT_H_FILE};
 use crate::model::gameboard::GameBoard;
 
 #[cfg(feature = "precomputed_rays")]
@@ -77,12 +76,12 @@ impl BatchLegalContext {
     {
       if opponent_white {
         // white pawns attack to NW and NE -> compute via shifts
-        let left = (opponent_pawns & NOT_A_FILE) << 7;
-        let right = (opponent_pawns & NOT_H_FILE) << 9;
+        let left = (opponent_pawns & crate::constants::NOT_A_FILE) << 7;
+        let right = (opponent_pawns & crate::constants::NOT_H_FILE) << 9;
         attacks |= left | right;
       } else {
-        let left = (opponent_pawns & NOT_A_FILE) >> 9;
-        let right = (opponent_pawns & NOT_H_FILE) >> 7;
+        let left = (opponent_pawns & crate::constants::NOT_A_FILE) >> 9;
+        let right = (opponent_pawns & crate::constants::NOT_H_FILE) >> 7;
         attacks |= left | right;
       }
     }
@@ -108,7 +107,7 @@ impl BatchLegalContext {
     {
       // Parallel-shift approach from attack.rs
       let knights = opponent_knights;
-      let l1 = (knights >> 1) & NOT_H_FILE;
+      let l1 = (knights >> 1) & crate::constants::NOT_H_FILE;
       let l2 = (knights >> 2) & crate::constants::NOT_GH_FILE;
       let r1 = (knights << 1) & crate::constants::NOT_A_FILE;
       let r2 = (knights << 2) & crate::constants::NOT_AB_FILE;
@@ -118,8 +117,8 @@ impl BatchLegalContext {
 
       // King attacks via shifts
       let kings = opponent_kings;
-      let east = (kings << 1) & NOT_A_FILE;
-      let west = (kings >> 1) & NOT_H_FILE;
+      let east = (kings << 1) & crate::constants::NOT_A_FILE;
+      let west = (kings >> 1) & crate::constants::NOT_H_FILE;
       let king_adj = east | west;
       let king_set = kings | king_adj;
       attacks |= king_adj | (king_set << 8) | (king_set >> 8);

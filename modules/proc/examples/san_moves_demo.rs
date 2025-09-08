@@ -125,7 +125,6 @@ fn main() {
 
   for (i, move_str) in dragon.moves.iter().enumerate() {
     let move_num = (i / 2) + 1;
-    let color = if i % 2 == 0 { "White" } else { "Black" };
     println!(
       "  {}{} {}",
       move_num,
