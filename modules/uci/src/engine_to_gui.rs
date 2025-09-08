@@ -79,13 +79,13 @@ pub enum InfoType {
   /// Nodes searched
   Nodes(u64),
   /// Best line found
-  Pv(Vec<String>),
+  Pv(Vec<PieceMove>),
   /// Multi PV mode number
   MultiPv(u32),
   /// Score information
   Score(ScoreType),
   /// Currently searching this move
-  CurrMove(String),
+  CurrMove(PieceMove),
   /// Currently searching move number
   CurrMoveNumber(u32),
   /// Hash table fill level (per mill)
@@ -102,13 +102,13 @@ pub enum InfoType {
   String(String),
   /// Move refutation
   Refutation {
-    refuted_move: String,
-    refutation_line: Vec<String>,
+    refuted_move: PieceMove,
+    refutation_line: Vec<PieceMove>,
   },
   /// Current line being calculated
   CurrLine {
     cpu_nr: Option<u32>,
-    line: Vec<String>,
+    line: Vec<PieceMove>,
   },
 }
 

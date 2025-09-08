@@ -13,13 +13,13 @@
  * Copyright (C) 2025 Clifton Toaster Reid
  */
 
-use lumifox_chess::model::piecemove::PieceMove;
+use lumifox_chess::model::{gamedata::GameData, piecemove::PieceMove};
 
 use crate::error::UciError;
 use std::str::FromStr;
 
 /// Commands sent from the GUI to the engine
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum GuiToEngineCommand {
   /// Tell engine to use the UCI (Universal Chess Interface)
   Uci,
@@ -46,7 +46,7 @@ pub enum GuiToEngineCommand {
   /// Set up a position on the internal board
   Position {
     /// Either a FEN string or indicates starting position
-    position: PositionType,
+    position: Box<PositionType>,
     /// Moves to play from the position
     moves: Vec<PieceMove>,
   },
@@ -90,12 +90,15 @@ pub enum GuiToEngineCommand {
 }
 
 /// Position type for the position command
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum PositionType {
   /// Starting position
   StartPos { moves: Vec<PieceMove> },
-  /// Position from FEN string
-  Fen { fen: String, moves: Vec<PieceMove> },
+  /// Position from FEN string (parsed)
+  Fen {
+    gamedata: Box<GameData>,
+    moves: Vec<PieceMove>,
+  },
 }
 
 impl FromStr for GuiToEngineCommand {
@@ -209,7 +212,7 @@ impl FromStr for GuiToEngineCommand {
             moves: moves.clone(),
           };
           return Ok(GuiToEngineCommand::Position {
-            position: pos_type,
+            position: Box::new(pos_type),
             moves,
           });
         }
@@ -241,12 +244,17 @@ impl FromStr for GuiToEngineCommand {
             }
           }
 
+          // Parse FEN into GameData. Logic for applying moves to the GameData
+          // (e.g., mutating gamedata.moves / plies) is left to the engine logic.
+          let gamedata = GameData::from_fen(&fen)
+            .map_err(|e| UciError::Parser(format!("Invalid FEN: {e:?}")))?;
+
           let pos_type = PositionType::Fen {
-            fen,
+            gamedata: Box::new(gamedata),
             moves: moves.clone(),
           };
           return Ok(GuiToEngineCommand::Position {
-            position: pos_type,
+            position: Box::new(pos_type),
             moves,
           });
         }
