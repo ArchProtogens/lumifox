@@ -5,7 +5,6 @@
 use crate::constants::{NOT_A_FILE, NOT_H_FILE};
 use crate::model::gameboard::GameBoard;
 
-use crate::model::piecemove::PieceMove;
 #[cfg(feature = "precomputed_rays")]
 use crate::model::rays::{KING_MOVES, KNIGHT_MOVES, PAWN_ATTACK_BLACK, PAWN_ATTACK_WHITE, RAYS};
 
@@ -206,13 +205,5 @@ impl BatchLegalContext {
       opponent_attacks: attacks,
       playing: board.playing,
     }
-  }
-
-  fn is_correct_turn_piece(&self, piece_move: &PieceMove) -> bool {
-    self
-      .board
-      .colour
-      .get_bit(piece_move.from_square())
-      .is_some_and(|f| f == self.board.playing)
   }
 }

@@ -511,6 +511,51 @@ impl GameData {
     plies: 0,
     halfmove_clock: 0,
   };
+
+  /// Creates a new PieceMove from the given from and to squares, automatically determining
+  /// if it's a capture or castling based on the current board state.
+  pub fn new_move(&self, from: u8, to: u8) -> PieceMove {
+    let is_capture = self.is_capture(from, to);
+    let is_castling = self.is_castling_move(from, to);
+    let promotion = None; // For now, no automatic promotion detection; can be added later
+
+    if is_castling {
+      PieceMove::new_castling(from, to)
+    } else {
+      PieceMove::new(from, to, is_capture, promotion)
+    }
+  }
+
+  /// Checks if the move to the target square is a capture (i.e., there's an enemy piece there).
+  fn is_capture(&self, _from: u8, to: u8) -> bool {
+    // Check if there's a piece on the target square and it's an enemy
+    self.board.combined().get_bit(to).unwrap_or(false)
+      && self.board.colour.get_bit(to).unwrap_or(false) != self.board.playing
+  }
+
+  /// Checks if the move is a castling move based on the from/to squares and castling rights.
+  fn is_castling_move(&self, from: u8, to: u8) -> bool {
+    // Must be moving a king
+    if !self.board.kings.get_bit(from).unwrap_or(false) {
+      return false;
+    }
+
+    if self.board.playing {
+      // White to move
+      match (from, to) {
+        (4, 6) => (self.board.castling & 0b0001) != 0, // Kingside: e1 to g1, K right
+        (4, 2) => (self.board.castling & 0b0010) != 0, // Queenside: e1 to c1, Q right
+        _ => false,
+      }
+    } else {
+      // Black to move
+      match (from, to) {
+        (60, 62) => (self.board.castling & 0b0100) != 0, // Kingside: e8 to g8, k right
+        (60, 58) => (self.board.castling & 0b1000) != 0, // Queenside: e8 to c8, q right
+        _ => false,
+      }
+    }
+  }
 }
 
 #[cfg(test)]

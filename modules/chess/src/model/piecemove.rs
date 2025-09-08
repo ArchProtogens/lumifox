@@ -151,6 +151,12 @@ impl PieceMove {
     PieceMove::new(from, to, true, None) // It is a capture
   }
 
+  /// Creates a simple PieceMove from from and to squares, assuming no capture and no promotion.
+  /// Use this for basic moves where flags need to be set later or are not applicable.
+  pub fn simple(from: u8, to: u8) -> Self {
+    Self::new(from, to, false, None)
+  }
+
   #[inline] // Hint to the compiler to inline this function for performance
   pub fn from_square(&self) -> u8 {
     ((self.0 >> FROM_SQUARE_SHIFT) & FROM_SQUARE_MASK) as u8
