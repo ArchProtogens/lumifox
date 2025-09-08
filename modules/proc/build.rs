@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::env;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
@@ -64,16 +64,23 @@ fn main() {
   let mut openings = HashMap::new();
 
   for letter in ['a', 'b', 'c', 'd', 'e'] {
-    let url = format!(
-      "https://github.com/lichess-org/chess-openings/raw/refs/heads/master/{}.tsv",
-      letter
-    );
+    let url =
+      format!("https://github.com/lichess-org/chess-openings/raw/refs/heads/master/{letter}.tsv");
 
-    println!("cargo:warning=Downloading {}", url);
+    // Save downloaded TSVs into OUT_DIR so they live alongside generated openings.rs
+    let cache_dir = Path::new(&out_dir);
+    let cache_file = cache_dir.join(format!("{letter}.tsv"));
 
-    let response = reqwest::blocking::get(&url).expect("Failed to download TSV file");
-
-    let content = response.text().expect("Failed to read response as text");
+    let content = if cache_file.exists() {
+      println!("cargo:debug=Using cached {}", cache_file.display());
+      fs::read_to_string(&cache_file).expect("Failed to read cached TSV file")
+    } else {
+      println!("cargo:info=Downloading {url}");
+      let response = reqwest::blocking::get(&url).expect("Failed to download TSV file");
+      let text = response.text().expect("Failed to read response as text");
+      fs::write(&cache_file, &text).expect("Failed to write cache file");
+      text
+    };
 
     let mut reader = csv::ReaderBuilder::new()
       .delimiter(b'\t')
@@ -90,16 +97,15 @@ fn main() {
   let mut file = File::create(&dest_path).unwrap();
 
   writeln!(file, "use std::collections::HashMap;").unwrap();
-  writeln!(file, "use once_cell::sync::Lazy;").unwrap();
-  writeln!(file, "").unwrap();
+  writeln!(file, "use once_cell::sync::Lazy;\n").unwrap();
+
   writeln!(file, "#[derive(Debug, Clone)]").unwrap();
   writeln!(file, "pub struct Opening {{").unwrap();
   writeln!(file, "    pub eco: &'static str,").unwrap();
   writeln!(file, "    pub name: &'static str,").unwrap();
   writeln!(file, "    pub pgn: &'static str,").unwrap();
   writeln!(file, "    pub moves: &'static [&'static str],").unwrap();
-  writeln!(file, "}}").unwrap();
-  writeln!(file, "").unwrap();
+  writeln!(file, "}}\n").unwrap();
 
   writeln!(
     file,
@@ -110,16 +116,16 @@ fn main() {
 
   for (name, opening) in &openings {
     let moves = parse_pgn_moves(&opening.pgn);
-    writeln!(file, "    map.insert({:?}, Opening {{", name).unwrap();
+    writeln!(file, "    map.insert({name:?}, Opening {{").unwrap();
     writeln!(file, "        eco: {:?},", opening.eco).unwrap();
     writeln!(file, "        name: {:?},", opening.name).unwrap();
     writeln!(file, "        pgn: {:?},", opening.pgn).unwrap();
-    writeln!(file, "        moves: &{:?},", moves).unwrap();
+    writeln!(file, "        moves: &{moves:?},").unwrap();
     writeln!(file, "    }});").unwrap();
   }
 
   writeln!(file, "    map").unwrap();
   writeln!(file, "}});").unwrap();
 
-  println!("cargo:warning=Generated {} openings", openings.len());
+  println!("cargo:info=Generated {} openings", openings.len());
 }
