@@ -1,0 +1,2 @@
+[profile.ci]
+junit = { path = "junit.xml", report-name = "lumifox-tests" }

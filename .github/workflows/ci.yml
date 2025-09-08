@@ -50,5 +50,20 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: nightly
-      - name: Run tests
-        run: cargo test --workspace --all-features --verbose
+      - name: Install cargo-nextest
+        run: cargo install cargo-nextest --locked
+      - name: Run tests with nextest (JUnit output)
+        run: cargo nextest run --profile ci
+      - name: Upload JUnit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: target/nextest/ci/junit.xml
+      - name: Upload results to Trunk Analytics
+        if: "!cancelled()"
+        uses: trunk-io/analytics-uploader@main
+        continue-on-error: true
+        with:
+          junit-paths: target/nextest/ci/junit.xml
+          org-slug: arch-protogens
+          token: ${{ secrets.TRUNK_API_TOKEN }}
