@@ -13,6 +13,22 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.changes.outputs.rust }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            rust:
+              - '**/*.rs'
+              - '**/Cargo.toml'
+              - '**/Cargo.lock'
+
   trunk_check:
     name: Trunk Check
     runs-on: ubuntu-latest
@@ -23,6 +39,8 @@ jobs:
   test:
     name: Test
     runs-on: ${{ matrix.os }}
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
